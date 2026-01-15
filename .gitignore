@@ -1,3 +1,14 @@
+# Frontend
+frontend/node_modules/
+frontend/dist/
+
+# Backend (futuro)
+backend/__pycache__/
+backend/.venv/
+backend/venv/
+backend/.env
+backend/*.db
+
 # Dependencies
 node_modules/
 
