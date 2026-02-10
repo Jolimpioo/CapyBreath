@@ -63,6 +63,7 @@ lerna-debug.log*
 .env
 .env.local
 .env.*.local
+*.env
 
 # Virtual Environment
 venv/
@@ -78,3 +79,10 @@ coverage/
 *.tmp
 *.temp
 .cache/
+
+# Docker volumes (data is persisted here)
+postgres_data/
+redis_data/
+
+# Docker override files (personal configs)
+docker-compose.override.yml
