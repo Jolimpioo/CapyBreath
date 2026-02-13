@@ -8,17 +8,17 @@ if TYPE_CHECKING:
     from app.models.user_achievement import UserAchievement
 
 class AchievementCategory(str, enum.Enum):
-    SESSIONS = "sessions"
-    RETENTION = "retention"
-    STREAK = "streak"
-    IMPROVEMENT = "improvement"
-    MILESTONE = "milestone"
+    SESSIONS = 'sessions'
+    RETENTION = 'retention'
+    STREAK = 'streak'
+    IMPROVEMENT = 'improvement'
+    MILESTONE = 'milestone'
 
 class AchievementRarity(str, enum.Enum):
-    COMMON = "common"
-    RARE = "rare"
-    EPIC = "epic"
-    LEGENDARY = "legendary"
+    COMMON = 'common'
+    RARE = 'rare'
+    EPIC = 'epic'
+    LEGENDARY = 'legendary'
 
 class Achievement(Base, UUIDMixin, TimestampMixin):
     __tablename__ = "achievements"
@@ -78,7 +78,7 @@ class Achievement(Base, UUIDMixin, TimestampMixin):
         comment="Indica se a conquista está ativa e disponível para os usuários"
     )
 
-    is_hiden: Mapped[bool] = mapped_column(
+    is_hidden: Mapped[bool] = mapped_column(
         Boolean,
         default=False,
         nullable=False,

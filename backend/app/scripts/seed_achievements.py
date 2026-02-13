@@ -26,8 +26,8 @@ DEFAULT_ACHIEVEMENTS = [
     {
         "name": "🚀 Primeiro Respiro",
         "description": "Complete sua primeira sessão de respiração",
-        "category": AchievementCategory.SESSIONS,
-        "rarity": AchievementRarity.COMMON,
+        "category": AchievementCategory.SESSIONS.value,
+        "rarity": AchievementRarity.COMMON.value,
         "icon": "🚀",
         "points": 10,
         "criteria_type": "total_sessions",
@@ -39,8 +39,8 @@ DEFAULT_ACHIEVEMENTS = [
     {
         "name": "🔥 10 Sessões",
         "description": "Complete 10 sessões de respiração",
-        "category": AchievementCategory.SESSIONS,
-        "rarity": AchievementRarity.COMMON,
+        "category": AchievementCategory.SESSIONS.value,
+        "rarity": AchievementRarity.COMMON.value,
         "icon": "🔥",
         "points": 25,
         "criteria_type": "total_sessions",
@@ -52,8 +52,8 @@ DEFAULT_ACHIEVEMENTS = [
     {
         "name": "⚡ 50 Sessões",
         "description": "Complete 50 sessões de respiração",
-        "category": AchievementCategory.SESSIONS,
-        "rarity": AchievementRarity.RARE,
+        "category": AchievementCategory.SESSIONS.value,
+        "rarity": AchievementRarity.RARE.value,
         "icon": "⚡",
         "points": 50,
         "criteria_type": "total_sessions",
@@ -65,8 +65,8 @@ DEFAULT_ACHIEVEMENTS = [
     {
         "name": "💯 100 Sessões",
         "description": "Complete 100 sessões de respiração",
-        "category": AchievementCategory.SESSIONS,
-        "rarity": AchievementRarity.EPIC,
+        "category": AchievementCategory.SESSIONS.value,
+        "rarity": AchievementRarity.EPIC.value,
         "icon": "💯",
         "points": 100,
         "criteria_type": "total_sessions",
@@ -78,8 +78,8 @@ DEFAULT_ACHIEVEMENTS = [
     {
         "name": "🏆 500 Sessões",
         "description": "Complete 500 sessões de respiração",
-        "category": AchievementCategory.SESSIONS,
-        "rarity": AchievementRarity.LEGENDARY,
+        "category": AchievementCategory.SESSIONS.value,
+        "rarity": AchievementRarity.LEGENDARY.value,
         "icon": "🏆",
         "points": 200,
         "criteria_type": "total_sessions",
@@ -89,12 +89,12 @@ DEFAULT_ACHIEVEMENTS = [
         "display_order": 5,
     },
     
-    # ==================== RETENTION ====================
+    # ==================== RETENTION.value ====================
     {
         "name": "⏱️ Primeiros Segundos",
         "description": "Aguarde 30 segundos na retenção",
-        "category": AchievementCategory.RETENTION,
-        "rarity": AchievementRarity.COMMON,
+        "category": AchievementCategory.RETENTION.value,
+        "rarity": AchievementRarity.COMMON.value,
         "icon": "⏱️",
         "points": 15,
         "criteria_type": "best_retention_time",
@@ -106,8 +106,8 @@ DEFAULT_ACHIEVEMENTS = [
     {
         "name": "⏰ Um Minuto",
         "description": "Aguarde 1 minuto (60 segundos) na retenção",
-        "category": AchievementCategory.RETENTION,
-        "rarity": AchievementRarity.COMMON,
+        "category": AchievementCategory.RETENTION.value,
+        "rarity": AchievementRarity.COMMON.value,
         "icon": "⏰",
         "points": 25,
         "criteria_type": "best_retention_time",
@@ -119,8 +119,8 @@ DEFAULT_ACHIEVEMENTS = [
     {
         "name": "🎯 2 Minutos",
         "description": "Aguarde 2 minutos (120 segundos) na retenção",
-        "category": AchievementCategory.RETENTION,
-        "rarity": AchievementRarity.RARE,
+        "category": AchievementCategory.RETENTION.value,
+        "rarity": AchievementRarity.RARE.value,
         "icon": "🎯",
         "points": 50,
         "criteria_type": "best_retention_time",
@@ -132,8 +132,8 @@ DEFAULT_ACHIEVEMENTS = [
     {
         "name": "🧘 3 Minutos",
         "description": "Aguarde 3 minutos (180 segundos) na retenção",
-        "category": AchievementCategory.RETENTION,
-        "rarity": AchievementRarity.RARE,
+        "category": AchievementCategory.RETENTION.value,
+        "rarity": AchievementRarity.RARE.value,
         "icon": "🧘",
         "points": 75,
         "criteria_type": "best_retention_time",
@@ -145,8 +145,8 @@ DEFAULT_ACHIEVEMENTS = [
     {
         "name": "💪 5 Minutos",
         "description": "Aguarde 5 minutos (300 segundos) na retenção",
-        "category": AchievementCategory.RETENTION,
-        "rarity": AchievementRarity.EPIC,
+        "category": AchievementCategory.RETENTION.value,
+        "rarity": AchievementRarity.EPIC.value,
         "icon": "💪",
         "points": 100,
         "criteria_type": "best_retention_time",
@@ -158,8 +158,8 @@ DEFAULT_ACHIEVEMENTS = [
     {
         "name": "👑 Rei da Retenção",
         "description": "Aguarde 10 minutos (600 segundos) na retenção",
-        "category": AchievementCategory.RETENTION,
-        "rarity": AchievementRarity.LEGENDARY,
+        "category": AchievementCategory.RETENTION.value,
+        "rarity": AchievementRarity.LEGENDARY.value,
         "icon": "👑",
         "points": 200,
         "criteria_type": "best_retention_time",
@@ -169,12 +169,12 @@ DEFAULT_ACHIEVEMENTS = [
         "display_order": 15,
     },
     
-    # ==================== STREAK ====================
+    # ==================== STREAK.value ====================
     {
         "name": "📅 Começou!",
         "description": "Pratique 3 dias consecutivos",
-        "category": AchievementCategory.STREAK,
-        "rarity": AchievementRarity.COMMON,
+        "category": AchievementCategory.STREAK.value,
+        "rarity": AchievementRarity.COMMON.value,
         "icon": "📅",
         "points": 20,
         "criteria_type": "current_streak",
@@ -186,8 +186,8 @@ DEFAULT_ACHIEVEMENTS = [
     {
         "name": "🔗 Uma Semana",
         "description": "Pratique 7 dias consecutivos",
-        "category": AchievementCategory.STREAK,
-        "rarity": AchievementRarity.RARE,
+        "category": AchievementCategory.STREAK.value,
+        "rarity": AchievementRarity.RARE.value,
         "icon": "🔗",
         "points": 50,
         "criteria_type": "current_streak",
@@ -199,8 +199,8 @@ DEFAULT_ACHIEVEMENTS = [
     {
         "name": "⛓️ Duas Semanas",
         "description": "Pratique 14 dias consecutivos",
-        "category": AchievementCategory.STREAK,
-        "rarity": AchievementRarity.RARE,
+        "category": AchievementCategory.STREAK.value,
+        "rarity": AchievementRarity.RARE.value,
         "icon": "⛓️",
         "points": 75,
         "criteria_type": "current_streak",
@@ -212,8 +212,8 @@ DEFAULT_ACHIEVEMENTS = [
     {
         "name": "📈 Um Mês",
         "description": "Pratique 30 dias consecutivos",
-        "category": AchievementCategory.STREAK,
-        "rarity": AchievementRarity.EPIC,
+        "category": AchievementCategory.STREAK.value,
+        "rarity": AchievementRarity.EPIC.value,
         "icon": "📈",
         "points": 100,
         "criteria_type": "current_streak",
@@ -225,8 +225,8 @@ DEFAULT_ACHIEVEMENTS = [
     {
         "name": "🔥 Máquina de Hábito",
         "description": "Pratique 100 dias consecutivos",
-        "category": AchievementCategory.STREAK,
-        "rarity": AchievementRarity.LEGENDARY,
+        "category": AchievementCategory.STREAK.value,
+        "rarity": AchievementRarity.LEGENDARY.value,
         "icon": "🔥",
         "points": 200,
         "criteria_type": "longest_streak",
@@ -236,12 +236,12 @@ DEFAULT_ACHIEVEMENTS = [
         "display_order": 24,
     },
     
-    # ==================== IMPROVEMENT ====================
+    # ==================== IMPROVEMENT.value ====================
     {
         "name": "📊 Progresso Pessoal",
         "description": "Melhore seu tempo de retenção",
-        "category": AchievementCategory.IMPROVEMENT,
-        "rarity": AchievementRarity.COMMON,
+        "category": AchievementCategory.IMPROVEMENT.value,
+        "rarity": AchievementRarity.COMMON.value,
         "icon": "📊",
         "points": 15,
         "criteria_type": "best_retention_time",
@@ -251,12 +251,12 @@ DEFAULT_ACHIEVEMENTS = [
         "display_order": 30,
     },
     
-    # ==================== MILESTONE ====================
+    # ==================== MILESTONE.value ====================
     {
         "name": "🦫 CapyBreather",
         "description": "Complete sua primeira semana de prática",
-        "category": AchievementCategory.MILESTONE,
-        "rarity": AchievementRarity.COMMON,
+        "category": AchievementCategory.MILESTONE.value,
+        "rarity": AchievementRarity.COMMON.value,
         "icon": "🦫",
         "points": 30,
         "criteria_type": "total_sessions",
@@ -268,8 +268,8 @@ DEFAULT_ACHIEVEMENTS = [
     {
         "name": "🎖️ Certificado Wim Hof",
         "description": "Combine: 50 sessões + 2 min retenção + 14 dias streak",
-        "category": AchievementCategory.MILESTONE,
-        "rarity": AchievementRarity.EPIC,
+        "category": AchievementCategory.MILESTONE.value,
+        "rarity": AchievementRarity.EPIC.value,
         "icon": "🎖️",
         "points": 150,
         "criteria_type": "total_sessions",
@@ -281,8 +281,8 @@ DEFAULT_ACHIEVEMENTS = [
     {
         "name": "🌟 Mestre do Controle",
         "description": "Mantenha uma sequência de 50 dias",
-        "category": AchievementCategory.MILESTONE,
-        "rarity": AchievementRarity.LEGENDARY,
+        "category": AchievementCategory.MILESTONE.value,
+        "rarity": AchievementRarity.LEGENDARY.value,
         "icon": "🌟",
         "points": 250,
         "criteria_type": "longest_streak",

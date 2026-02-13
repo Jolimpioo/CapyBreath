@@ -2,6 +2,7 @@ from datetime import datetime, timezone
 from typing import Any
 from sqlalchemy.orm import Mapped, mapped_column, DeclarativeBase
 from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy import DateTime
 import uuid
 
 class Base(DeclarativeBase):
@@ -9,12 +10,14 @@ class Base(DeclarativeBase):
 
 class TimestampMixin:
     created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), 
         default=lambda: datetime.now(timezone.utc),
         nullable=False,
         index=True
     )
 
     updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), 
         default=lambda: datetime.now(timezone.utc),
         onupdate=lambda: datetime.now(timezone.utc),
         nullable=False
