@@ -1,4 +1,5 @@
 import { useBreathingSession } from './hooks/useBreathingSession';
+import Navbar from './components/Navbar';
 import BreathingCircle from './components/BreathingCircle';
 import BreathCounter from './components/BreathCounter';
 import Timer from './components/Timer';
@@ -22,38 +23,43 @@ function App() {
   // Renderiza tela inicial (antes de começar)
   if (fase === 'inicio') {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-capy-secondary to-capy-accent flex flex-col items-center justify-center p-8">
-        <h1 className="text-6xl font-bold text-white mb-4 drop-shadow-lg">
-          🦫 CapyBreath
-        </h1>
-        <p className="text-xl text-white/90 mb-12">
-          Respiração Consciente e Tranquila
-        </p>
+      <div className="min-h-screen bg-gradient-to-b from-capy-secondary to-capy-accent flex flex-col">
+        <Navbar />
+        <div className="flex flex-col items-center justify-center flex-1 p-8">
+          <h1 className="text-6xl font-bold text-white mb-4 drop-shadow-lg">
+            🦫 CapyBreath
+          </h1>
+          <p className="text-xl text-white/90 mb-12">
+            Respiração Consciente e Tranquila
+          </p>
 
-        <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-8 max-w-md mb-8">
-          <h2 className="text-2xl font-bold text-white mb-4">Como Funciona</h2>
-          <ul className="space-y-3 text-white/90">
-            <li className="flex items-start">
-              <span className="mr-3">1️⃣</span>
-              <span>30 respirações profundas (inspirar e expirar)</span>
-            </li>
-            <li className="flex items-start">
-              <span className="mr-3">2️⃣</span>
-              <span>Retenção: segure até não aguentar mais</span>
-            </li>
-            <li className="flex items-start">
-              <span className="mr-3">3️⃣</span>
-              <span>Recuperação: inspire fundo e segure 15s</span>
-            </li>
-          </ul>
+          <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-8 max-w-md mb-8">
+            <h2 className="text-2xl font-bold text-white mb-4">
+              Como Funciona
+            </h2>
+            <ul className="space-y-3 text-white/90">
+              <li className="flex items-start">
+                <span className="mr-3">1️⃣</span>
+                <span>30 respirações profundas (inspirar e expirar)</span>
+              </li>
+              <li className="flex items-start">
+                <span className="mr-3">2️⃣</span>
+                <span>Retenção: segure até não aguentar mais</span>
+              </li>
+              <li className="flex items-start">
+                <span className="mr-3">3️⃣</span>
+                <span>Recuperação: inspire fundo e segure 15s</span>
+              </li>
+            </ul>
+          </div>
+
+          <button
+            onClick={iniciarSessao}
+            className="px-12 py-5 bg-white text-capy-primary font-bold text-2xl rounded-full hover:bg-white/90 hover:scale-105 transition-all shadow-2xl active:scale-95"
+          >
+            ▶ Iniciar Sessão
+          </button>
         </div>
-
-        <button
-          onClick={iniciarSessao}
-          className="px-12 py-5 bg-white text-capy-primary font-bold text-2xl rounded-full hover:bg-white/90 hover:scale-105 transition-all shadow-2xl active:scale-95"
-        >
-          ▶ Iniciar Sessão
-        </button>
       </div>
     );
   }
