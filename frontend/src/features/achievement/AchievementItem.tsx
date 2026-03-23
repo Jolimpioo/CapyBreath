@@ -1,4 +1,3 @@
-
 import type {
   LockedAchievement,
   UnlockedAchievement,
@@ -7,19 +6,23 @@ import type {
 type AchievementItemProps = {
   achievement: LockedAchievement | UnlockedAchievement;
   unlocked?: boolean;
+  onClick?: () => void;
 };
 
 const AchievementItem = ({
   achievement,
   unlocked = false,
+  onClick,
 }: AchievementItemProps) => {
   return (
-    <div
-      className={
+    <button
+      type="button"
+      onClick={onClick}
+      className={`w-full text-left transition hover:shadow-sm ${
         unlocked
           ? 'p-4 rounded border-2 border-green-500 bg-green-50'
           : 'p-4 rounded border bg-gray-50'
-      }
+      }`}
     >
       <p className="font-bold text-lg">
         {achievement.icon} {achievement.name}
@@ -35,7 +38,7 @@ const AchievementItem = ({
           +{achievement.points} pts • {achievement.rarity}
         </p>
       )}
-    </div>
+    </button>
   );
 };
 

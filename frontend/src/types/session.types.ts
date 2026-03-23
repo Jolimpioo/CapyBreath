@@ -53,6 +53,47 @@ export interface SessionUpdateRequest {
   mood_after?: number | null;
 }
 
+export interface SessionPeriodStats {
+  sessions_count: number;
+  total_retention_time: number;
+  average_retention_time: number;
+  best_retention_time: number;
+}
+
+export interface SessionsSummary {
+  total_sessions: number;
+  total_retention_time: number;
+  average_retention_time: number;
+  best_retention_time: number;
+  current_streak: number;
+  longest_streak: number;
+  total_breaths: number;
+  last_7_days: SessionPeriodStats;
+  last_30_days: SessionPeriodStats;
+}
+
+export interface ProgressDataPoint {
+  date: string;
+  sessions_count: number;
+  total_retention_time: number;
+  average_retention_time: number;
+  best_retention_time: number;
+}
+
+export interface ProgressResponse {
+  data_points: ProgressDataPoint[];
+  period_days: number;
+  trend: 'improving' | 'stable' | 'declining';
+}
+
+export interface MoodCorrelationResponse {
+  average_mood_before: number;
+  average_mood_after: number;
+  average_improvement: number;
+  correlation_retention_improvement: number;
+  sessions_with_mood: number;
+}
+
 export interface SessionQueryParams {
   page?: number;
   size?: number;

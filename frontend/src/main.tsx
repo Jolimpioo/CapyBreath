@@ -13,6 +13,7 @@ import SessionPage from './pages/SessionPage';
 import AchievementsPage from './pages/AchievementsPage';
 import ProfilePage from './pages/ProfilePage';
 import SessionDetailPage from './pages/SessionDetailPage';
+import CommunityPage from './pages/CommunityPage';
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
@@ -62,6 +63,7 @@ createRoot(document.getElementById('root')!).render(
               </PrivateRoute>
             }
           />
+          <Route path="/community" element={<CommunityPage />} />
         </Routes>
       </BrowserRouter>
     </AuthProvider>

@@ -1,10 +1,17 @@
 export type AchievementRarity = 'common' | 'rare' | 'epic' | 'legendary';
 
+export type AchievementCategory =
+  | 'sessions'
+  | 'retention'
+  | 'streak'
+  | 'improvement'
+  | 'milestone';
+
 export interface Achievement {
   id: string;
   name: string;
   description: string;
-  category: string;
+  category: AchievementCategory;
   rarity: AchievementRarity;
   icon: string;
   points: number;
@@ -32,6 +39,12 @@ export interface LockedAchievement extends Achievement {
   progress: AchievementProgress;
 }
 
+export interface AchievementDetail extends Achievement {
+  unlocked: boolean;
+  unlocked_at: string | null;
+  progress: AchievementProgress | null;
+}
+
 export interface UserAchievementsResponse {
   unlocked: UnlockedAchievement[];
   locked: LockedAchievement[];
@@ -44,4 +57,9 @@ export interface CheckAchievementsResponse {
   newly_unlocked: UnlockedAchievement[];
   count: number;
   message: string;
+}
+
+export interface AchievementCatalogFilters {
+  category?: AchievementCategory | 'all';
+  rarity?: AchievementRarity | 'all';
 }

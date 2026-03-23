@@ -11,6 +11,9 @@ const Navbar = () => {
           <Link to="/" className="font-bold text-xl hover:underline">
             CapyBreath
           </Link>
+          <Link to="/community" className="hover:underline">
+            Comunidade
+          </Link>
         </div>
         <div className="flex items-center gap-4">
           <Link
@@ -44,6 +47,9 @@ const Navbar = () => {
         </Link>
         <Link to="/profile" className="hover:underline">
           Perfil
+        </Link>
+        <Link to="/community" className="hover:underline">
+          Comunidade
         </Link>
       </div>
       <div className="flex items-center gap-4">
