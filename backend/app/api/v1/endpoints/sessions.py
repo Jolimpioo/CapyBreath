@@ -106,7 +106,7 @@ async def get_session(
 @router.patch(
     "/{session_id}",
     response_model=SessionResponse,
-    summary="Atualizar sessão"
+    summary="Atualizar sessão (apenas notas e humor)"
 )
 async def update_session(
     session_id: UUID,

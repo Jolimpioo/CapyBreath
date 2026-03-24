@@ -1,6 +1,6 @@
 from uuid import UUID
 from typing import Sequence
-from datetime import datetime, timedelta, timezone
+from datetime import date, datetime, timedelta, timezone
 
 from app.repositories.session_repository import SessionRepository
 from app.repositories.user_repository import UserRepository
@@ -28,6 +28,71 @@ class SessionService:
     ):
         self.session_repo = session_repo
         self.user_repo = user_repo
+
+    async def _recompute_user_stats(self, user_id: UUID) -> None:
+        user = await self.user_repo.get_by_id(user_id)
+        if not user:
+            return
+
+        sessions = await self.session_repo.get_user_sessions_chronological(user_id)
+
+        if not sessions:
+            await self.user_repo.update_by_id(
+                user_id,
+                total_sessions=0,
+                total_retention_time=0,
+                best_retention_time=0,
+                current_streak=0,
+                longest_streak=0,
+                last_session_date=None
+            )
+            return
+
+        total_sessions = len(sessions)
+        total_retention_time = sum(s.retention_time for s in sessions)
+        best_retention_time = max(s.retention_time for s in sessions)
+        last_session_date = max(s.session_date for s in sessions)
+
+        unique_days = sorted({s.session_date.date() for s in sessions})
+        current_streak, longest_streak = self._calculate_streaks(unique_days)
+
+        await self.user_repo.update_by_id(
+            user_id,
+            total_sessions=total_sessions,
+            total_retention_time=total_retention_time,
+            best_retention_time=best_retention_time,
+            current_streak=current_streak,
+            longest_streak=longest_streak,
+            last_session_date=last_session_date
+        )
+
+    @staticmethod
+    def _calculate_streaks(unique_days: list[date]) -> tuple[int, int]:
+        if not unique_days:
+            return 0, 0
+
+        longest_streak = 1
+        running_streak = 1
+
+        for idx in range(1, len(unique_days)):
+            days_diff = (unique_days[idx] - unique_days[idx - 1]).days
+            if days_diff == 1:
+                running_streak += 1
+            else:
+                running_streak = 1
+
+            if running_streak > longest_streak:
+                longest_streak = running_streak
+
+        current_streak = 1
+        for idx in range(len(unique_days) - 1, 0, -1):
+            days_diff = (unique_days[idx] - unique_days[idx - 1]).days
+            if days_diff == 1:
+                current_streak += 1
+            else:
+                break
+
+        return current_streak, longest_streak
 
 
     # create session
@@ -145,6 +210,13 @@ class SessionService:
             **update_data
         )
 
+        affects_user_aggregates = bool(
+            {"retention_time", "session_date"}.intersection(update_data.keys())
+        )
+        if affects_user_aggregates:
+            await self._recompute_user_stats(user_id)
+            await invalidate_user_stats(str(user_id))
+
         return SessionResponse.model_validate(updated)
 
 
@@ -160,6 +232,7 @@ class SessionService:
         )
 
         if success:
+            await self._recompute_user_stats(user_id)
             await invalidate_user_stats(str(user_id))
 
         return success
@@ -315,18 +388,30 @@ class SessionService:
         user_id: UUID,
         days: int = 30
     ) -> list[SessionDetailResponse]:
-        sessions = await self.session_repo.get_recent_personal_bests(
+        cutoff_date = datetime.now(timezone.utc) - timedelta(days=days)
+        baseline_best = await self.session_repo.get_best_retention_before(
             user_id,
-            days
+            cutoff_date
+        )
+        recent_sessions = await self.session_repo.get_user_sessions_since(
+            user_id,
+            cutoff_date
         )
 
-        return [
-            SessionDetailResponse(
-                **s.__dict__,
-                is_personal_best=True
-            )
-            for s in sessions
-        ]
+        running_best = baseline_best
+        recent_bests: list[SessionDetailResponse] = []
+
+        for session in recent_sessions:
+            if session.retention_time > running_best:
+                running_best = session.retention_time
+                recent_bests.append(
+                    SessionDetailResponse(
+                        **session.__dict__,
+                        is_personal_best=True
+                    )
+                )
+
+        return recent_bests
 
 
     # weekly progress

@@ -1,4 +1,4 @@
-from pydantic import Field, field_validator
+from pydantic import Field, field_validator, ConfigDict
 from datetime import datetime
 from uuid import UUID
 from app.schemas.common import BaseSchema, TimestampSchema, UUIDSchema
@@ -71,22 +71,24 @@ class SessionCreate(BaseSchema):
 
 # update
 class SessionUpdate(BaseSchema):
+    model_config = ConfigDict(**BaseSchema.model_config, extra="forbid")
+
     notes: str | None = Field(
         None,
         max_length=500,
-        description="Notas sobre a sessão"
+        description="Notas sobre a sessão (campo editável)"
     )
     mood_before: int | None = Field(
         None,
         ge=1,
         le=10,
-        description="Humor antes (1-10)"
+        description="Humor antes (1-10, campo editável)"
     )
     mood_after: int | None = Field(
         None,
         ge=1,
         le=10,
-        description="Humor após (1-10)"
+        description="Humor após (1-10, campo editável)"
     )
 
     @field_validator('notes')

@@ -1,7 +1,7 @@
 from typing import Sequence
 from uuid import UUID
 from datetime import datetime, timedelta, timezone
-from sqlalchemy import select, func, and_, desc, asc, case
+from sqlalchemy import select, func, and_, desc, asc
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.session import Session
@@ -200,30 +200,59 @@ class SessionRepository(BaseRepository[Session]):
         days: int = 30
     ) -> Sequence[Session]:
         cutoff_date = datetime.now(timezone.utc) - timedelta(days=days)
-
-        # Subquery: máximo até aquela data
-        subq = (
-            select(func.max(Session.retention_time))
-            .where(
-                and_(
-                    Session.user_id == user_id,
-                    Session.session_date < Session.session_date
-                )
-            )
-            .correlate(Session)
-            .scalar_subquery()
-        )
-
         result = await self.db.execute(
             select(Session)
             .where(
                 and_(
                     Session.user_id == user_id,
-                    Session.session_date >= cutoff_date,
-                    Session.retention_time > subq
+                    Session.session_date >= cutoff_date
                 )
             )
-            .order_by(desc(Session.session_date))
+            .order_by(asc(Session.session_date), asc(Session.created_at))
+        )
+        return result.scalars().all()
+
+    async def get_best_retention_before(
+        self,
+        user_id: UUID,
+        before_date: datetime
+    ) -> int:
+        result = await self.db.execute(
+            select(func.max(Session.retention_time))
+            .where(
+                and_(
+                    Session.user_id == user_id,
+                    Session.session_date < before_date
+                )
+            )
+        )
+        return int(result.scalar() or 0)
+
+    async def get_user_sessions_since(
+        self,
+        user_id: UUID,
+        since_date: datetime
+    ) -> Sequence[Session]:
+        result = await self.db.execute(
+            select(Session)
+            .where(
+                and_(
+                    Session.user_id == user_id,
+                    Session.session_date >= since_date
+                )
+            )
+            .order_by(asc(Session.session_date), asc(Session.created_at))
+        )
+        return result.scalars().all()
+
+    async def get_user_sessions_chronological(
+        self,
+        user_id: UUID
+    ) -> Sequence[Session]:
+        result = await self.db.execute(
+            select(Session)
+            .where(Session.user_id == user_id)
+            .order_by(asc(Session.session_date), asc(Session.created_at))
         )
         return result.scalars().all()
 
