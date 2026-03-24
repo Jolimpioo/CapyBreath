@@ -4,7 +4,8 @@ from app.schemas.user import (
     UserUpdate,
     UserResponse,
     UserStatsResponse,
-    UserProfile
+    UserProfile,
+    PublicUserStatsResponse
 )
 from app.schemas.common import MessageResponse
 from app.api.dependencies import UserServiceDep
@@ -120,7 +121,7 @@ async def delete_my_account(
 # leaderboards (nao requer autenticacao)
 @router.get(
     "/leaderboard/retention",
-    response_model=list[UserStatsResponse],
+    response_model=list[PublicUserStatsResponse],
     summary="Top usuários por tempo de retenção"
 )
 async def leaderboard_by_retention(
@@ -132,7 +133,7 @@ async def leaderboard_by_retention(
 
 @router.get(
     "/leaderboard/streak",
-    response_model=list[UserStatsResponse],
+    response_model=list[PublicUserStatsResponse],
     summary="Top usuários por sequência (streak)"
 )
 async def leaderboard_by_streak(
@@ -144,7 +145,7 @@ async def leaderboard_by_streak(
 
 @router.get(
     "/leaderboard/active",
-    response_model=list[UserStatsResponse],
+    response_model=list[PublicUserStatsResponse],
     summary="Usuários mais ativos"
 )
 async def leaderboard_most_active(
@@ -161,6 +162,7 @@ async def leaderboard_most_active(
     summary="Buscar usuários por username"
 )
 async def search_users(
+    user_id: CurrentUserDep,
     user_service: UserServiceDep,
     q: str = Query(..., min_length=2, description="Termo de busca"),
     limit: int = Query(10, ge=1, le=50)

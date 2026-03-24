@@ -19,6 +19,22 @@ export interface UserStats extends User {
   last_session_date: string | null;
 }
 
+export interface PublicUser {
+  id: string;
+  username: string;
+  full_name: string | null;
+  avatar_url: string | null;
+}
+
+export interface PublicUserStats extends PublicUser {
+  total_sessions: number;
+  total_retention_time: number;
+  best_retention_time: number;
+  current_streak: number;
+  longest_streak: number;
+  last_session_date: string | null;
+}
+
 export type UserProfile = UserStats;
 
 export interface UserUpdateRequest {

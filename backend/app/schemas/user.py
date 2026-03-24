@@ -58,6 +58,53 @@ class UserResponse(UUIDSchema, TimestampSchema, UserBase):
     )
 
 
+class PublicUserResponse(UUIDSchema):
+    username: str = Field(
+        ...,
+        description="Nome de usuário"
+    )
+    full_name: str | None = Field(
+        None,
+        description="Nome completo"
+    )
+    avatar_url: str | None = Field(
+        None,
+        description="URL do avatar"
+    )
+
+
+class PublicUserStatsResponse(PublicUserResponse):
+    total_sessions: int = Field(
+        ...,
+        ge=0,
+        description="Total de sessões completadas"
+    )
+    total_retention_time: int = Field(
+        ...,
+        ge=0,
+        description="Tempo total de retenção (segundos)"
+    )
+    best_retention_time: int = Field(
+        ...,
+        ge=0,
+        description="Melhor tempo de retenção (segundos)"
+    )
+    current_streak: int = Field(
+        ...,
+        ge=0,
+        description="Sequência atual de dias consecutivos"
+    )
+    longest_streak: int = Field(
+        ...,
+        ge=0,
+        description="Maior sequência de dias consecutivos"
+    )
+    last_session_date: datetime | None = Field(
+        None,
+        description="Data da última sessão"
+    )
+
+
 class UserStatsResponse(UserResponse):
     total_sessions: int = Field(
         ...,

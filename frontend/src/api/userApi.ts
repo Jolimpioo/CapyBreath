@@ -1,5 +1,5 @@
 import httpClient from './httpClient';
-import type { User, UserProfile, UserStats, UserUpdateRequest } from '../types/user.types';
+import type { PublicUserStats, User, UserProfile, UserStats, UserUpdateRequest } from '../types/user.types';
 
 export const getProfile = async (): Promise<User> => {
   const res = await httpClient.get('/api/v1/users/me');
@@ -21,22 +21,22 @@ export const getMyFullProfile = async (): Promise<UserProfile> => {
   return res.data;
 };
 
-export const getLeaderboardByRetention = async (limit = 10): Promise<UserStats[]> => {
-  const res = await httpClient.get<UserStats[]>('/api/v1/users/leaderboard/retention', {
+export const getLeaderboardByRetention = async (limit = 10): Promise<PublicUserStats[]> => {
+  const res = await httpClient.get<PublicUserStats[]>('/api/v1/users/leaderboard/retention', {
     params: { limit },
   });
   return res.data;
 };
 
-export const getLeaderboardByStreak = async (limit = 10): Promise<UserStats[]> => {
-  const res = await httpClient.get<UserStats[]>('/api/v1/users/leaderboard/streak', {
+export const getLeaderboardByStreak = async (limit = 10): Promise<PublicUserStats[]> => {
+  const res = await httpClient.get<PublicUserStats[]>('/api/v1/users/leaderboard/streak', {
     params: { limit },
   });
   return res.data;
 };
 
-export const getLeaderboardByActive = async (limit = 10): Promise<UserStats[]> => {
-  const res = await httpClient.get<UserStats[]>('/api/v1/users/leaderboard/active', {
+export const getLeaderboardByActive = async (limit = 10): Promise<PublicUserStats[]> => {
+  const res = await httpClient.get<PublicUserStats[]>('/api/v1/users/leaderboard/active', {
     params: { limit },
   });
   return res.data;

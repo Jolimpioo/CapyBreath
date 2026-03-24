@@ -6,14 +6,14 @@ import {
   getLeaderboardByStreak,
   searchUsers,
 } from '../api/userApi';
-import type { User, UserStats } from '../types/user.types';
+import type { PublicUserStats, User } from '../types/user.types';
 import { useAuthContext } from '../features/auth/AuthProvider';
 
 const CommunityPage = () => {
   const { isAuthenticated } = useAuthContext();
-  const [retentionBoard, setRetentionBoard] = useState<UserStats[]>([]);
-  const [streakBoard, setStreakBoard] = useState<UserStats[]>([]);
-  const [activeBoard, setActiveBoard] = useState<UserStats[]>([]);
+  const [retentionBoard, setRetentionBoard] = useState<PublicUserStats[]>([]);
+  const [streakBoard, setStreakBoard] = useState<PublicUserStats[]>([]);
+  const [activeBoard, setActiveBoard] = useState<PublicUserStats[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [searchResults, setSearchResults] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
@@ -63,8 +63,8 @@ const CommunityPage = () => {
 
   const renderBoard = (
     title: string,
-    items: UserStats[],
-    metric: (item: UserStats) => string
+    items: PublicUserStats[],
+    metric: (item: PublicUserStats) => string
   ) => (
     <section className="rounded-xl border bg-white p-5 shadow-sm">
       <h2 className="text-xl font-semibold mb-3">{title}</h2>
