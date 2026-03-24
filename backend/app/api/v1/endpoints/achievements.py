@@ -11,7 +11,7 @@ from app.schemas.achievement import (
 from app.schemas.common import MessageResponse
 from app.models.achievement import AchievementCategory, AchievementRarity
 from app.api.dependencies import AchievementServiceDep
-from app.api.auth import CurrentUserDep
+from app.api.auth import CurrentUserDep, CurrentAdminDep
 
 router = APIRouter(prefix="/achievements", tags=["Achievements"])
 
@@ -127,23 +127,23 @@ async def check_achievements(
     }
 
 
-# admin routes (futuro - adicionar proteção de role)
+# admin routes
 @router.post(
     "/admin/create",
     response_model=AchievementResponse,
     status_code=status.HTTP_201_CREATED,
     summary="[ADMIN] Criar conquista",
-    include_in_schema=False  # Ocultar do Swagger por enquanto
+    responses={
+        status.HTTP_403_FORBIDDEN: {"description": "Acesso restrito a administradores"}
+    }
 )
 async def create_achievement(
     achievement_data: AchievementCreate,
-    user_id: CurrentUserDep,  # TODO: Verificar se é admin
+    user_id: CurrentAdminDep,
     achievement_service: AchievementServiceDep
 ):
     """
     **[ADMIN ONLY]** Cria uma nova conquista no sistema.
-    
-    **TODO:** Adicionar verificação de role admin.
     
     **Requer autenticação.**
     """
@@ -160,18 +160,18 @@ async def create_achievement(
     "/admin/{achievement_id}",
     response_model=AchievementResponse,
     summary="[ADMIN] Atualizar conquista",
-    include_in_schema=False
+    responses={
+        status.HTTP_403_FORBIDDEN: {"description": "Acesso restrito a administradores"}
+    }
 )
 async def update_achievement(
     achievement_id: UUID,
     achievement_update: AchievementUpdate,
-    user_id: CurrentUserDep,  # TODO: Verificar se é admin
+    user_id: CurrentAdminDep,
     achievement_service: AchievementServiceDep
 ):
     """
     **[ADMIN ONLY]** Atualiza uma conquista existente.
-    
-    **TODO:** Adicionar verificação de role admin.
     
     **Requer autenticação.**
     """
@@ -193,11 +193,13 @@ async def update_achievement(
     "/admin/{achievement_id}/deactivate",
     response_model=MessageResponse,
     summary="[ADMIN] Desativar conquista",
-    include_in_schema=False
+    responses={
+        status.HTTP_403_FORBIDDEN: {"description": "Acesso restrito a administradores"}
+    }
 )
 async def deactivate_achievement(
     achievement_id: UUID,
-    user_id: CurrentUserDep,  # TODO: Verificar se é admin
+    user_id: CurrentAdminDep,
     achievement_service: AchievementServiceDep
 ):
     """
@@ -206,8 +208,6 @@ async def deactivate_achievement(
     **Ação:**
     - Conquista não aparece mais para usuários
     - Usuários que já têm mantêm a conquista
-    
-    **TODO:** Adicionar verificação de role admin.
     
     **Requer autenticação.**
     """

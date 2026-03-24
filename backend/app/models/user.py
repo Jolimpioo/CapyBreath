@@ -42,6 +42,12 @@ class User(Base, UUIDMixin, TimestampMixin, SoftDeleteMixin):
         nullable=False,
     )
 
+    is_admin: Mapped[bool] = mapped_column(
+        Boolean,
+        default=False,
+        nullable=False,
+    )
+
     full_name: Mapped[str | None] = mapped_column(
         String(255),
         nullable=True

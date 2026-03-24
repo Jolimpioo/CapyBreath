@@ -2,9 +2,13 @@ from typing import Annotated
 from uuid import UUID
 from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.services.auth_service import AuthService
 from app.api.dependencies import AuthServiceDep
+from app.core.database import get_db
+from app.models.user import User
 
 # Security scheme para documentação automática do Swagger
 security = HTTPBearer(
@@ -39,3 +43,28 @@ async def get_current_user_id(
 
 # Type alias para facilitar uso nos endpoints
 CurrentUserDep = Annotated[UUID, Depends(get_current_user_id)]
+
+
+async def get_current_admin_id(
+    user_id: CurrentUserDep,
+    db: Annotated[AsyncSession, Depends(get_db)]
+) -> UUID:
+    result = await db.execute(
+        select(User).where(
+            User.id == user_id,
+            User.is_active.is_(True),
+            User.deleted_at.is_(None)
+        )
+    )
+    user = result.scalar_one_or_none()
+
+    if not user or not user.is_admin:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Acesso restrito a administradores"
+        )
+
+    return user_id
+
+
+CurrentAdminDep = Annotated[UUID, Depends(get_current_admin_id)]
