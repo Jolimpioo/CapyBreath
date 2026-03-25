@@ -6,7 +6,8 @@ from app.schemas.achievement import (
     UserAchievementsResponse,
     AchievementDetail,
     AchievementCreate,
-    AchievementUpdate
+    AchievementUpdate,
+    CheckAchievementsResponse
 )
 from app.schemas.common import MessageResponse
 from app.models.achievement import AchievementCategory, AchievementRarity
@@ -58,7 +59,8 @@ async def list_by_rarity(
 @router.get(
     "/stats",
     response_model=dict,
-    summary="Estatísticas gerais do sistema de conquistas"
+    summary="Estatísticas gerais do sistema de conquistas (roadmap)",
+    deprecated=True
 )
 async def get_achievement_stats(
     achievement_service: AchievementServiceDep
@@ -109,7 +111,7 @@ async def get_achievement_detail(
 
 @router.post(
     "/check",
-    response_model=dict,
+    response_model=CheckAchievementsResponse,
     summary="Verificar e desbloquear conquistas"
 )
 async def check_achievements(

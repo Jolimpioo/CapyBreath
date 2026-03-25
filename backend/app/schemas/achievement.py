@@ -260,3 +260,19 @@ class AchievementUnlocked(BaseSchema):
         ...,
         description="Momento do desbloqueio"
     )
+
+
+class CheckAchievementsResponse(BaseSchema):
+    newly_unlocked: list[UnlockedAchievement] = Field(
+        ...,
+        description="Conquistas desbloqueadas nesta verificação"
+    )
+    count: int = Field(
+        ...,
+        ge=0,
+        description="Quantidade de conquistas desbloqueadas"
+    )
+    message: str = Field(
+        ...,
+        description="Mensagem amigável de resultado"
+    )

@@ -3,7 +3,7 @@ from fastapi import APIRouter, HTTPException, status
 from app.schemas.auth import (
     UserRegister,
     UserLogin,
-    TokenResponse,
+    AuthSuccessResponse,
     TokenRefresh,
     AccessTokenResponse
 )
@@ -17,7 +17,7 @@ router = APIRouter(prefix="/auth", tags=["Authentication"])
 
 @router.post(
     "/register",
-    response_model=dict,
+    response_model=AuthSuccessResponse,
     status_code=status.HTTP_201_CREATED,
     summary="Registrar novo usuário"
 )
@@ -42,7 +42,7 @@ async def register(
 
 @router.post(
     "/login",
-    response_model=dict,
+    response_model=AuthSuccessResponse,
     summary="Fazer login"
 )
 async def login(
@@ -110,7 +110,8 @@ async def logout(
 @router.get(
     "/me",
     response_model=UserLoginResponse,
-    summary="Obter usuário atual"
+    summary="Obter usuário atual (legado)",
+    deprecated=True
 )
 async def get_current_user(
     user_id: CurrentUserDep,

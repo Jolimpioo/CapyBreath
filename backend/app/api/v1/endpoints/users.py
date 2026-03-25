@@ -99,7 +99,8 @@ async def get_my_full_profile(
 @router.delete(
     "/me",
     response_model=MessageResponse,
-    summary="Deletar minha conta"
+    summary="Deletar minha conta (roadmap)",
+    deprecated=True
 )
 async def delete_my_account(
     user_id: CurrentUserDep,

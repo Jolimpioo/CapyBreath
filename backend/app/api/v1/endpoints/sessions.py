@@ -195,7 +195,8 @@ async def get_mood_correlation(
 @router.get(
     "/filter/by-date",
     response_model=list[SessionResponse],
-    summary="Filtrar sessões por período"
+    summary="Filtrar sessões por período (roadmap)",
+    deprecated=True
 )
 async def filter_by_date_range(
     user_id: CurrentUserDep,
@@ -213,7 +214,8 @@ async def filter_by_date_range(
 @router.get(
     "/filter/by-technique/{technique_variant}",
     response_model=list[SessionResponse],
-    summary="Filtrar por técnica"
+    summary="Filtrar por técnica (roadmap)",
+    deprecated=True
 )
 async def filter_by_technique(
     technique_variant: str,

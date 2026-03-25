@@ -1,5 +1,6 @@
 from pydantic import Field, EmailStr, field_validator
 from app.schemas.common import BaseSchema
+from app.schemas.user import UserLoginResponse
 import re
 
 # registro
@@ -98,6 +99,17 @@ class AccessTokenResponse(BaseSchema):
     expires_in: int = Field(
         ...,
         description="Tempo de expiração em segundos"
+    )
+
+
+class AuthSuccessResponse(BaseSchema):
+    user: UserLoginResponse = Field(
+        ...,
+        description="Dados do usuário autenticado"
+    )
+    tokens: TokenResponse = Field(
+        ...,
+        description="Par de tokens JWT"
     )
 
 
