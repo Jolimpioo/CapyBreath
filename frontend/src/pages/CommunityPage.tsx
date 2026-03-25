@@ -18,12 +18,13 @@ const CommunityPage = () => {
   const [searchResults, setSearchResults] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const [searching, setSearching] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [boardError, setBoardError] = useState<string | null>(null);
+  const [searchError, setSearchError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchBoards = async () => {
       setLoading(true);
-      setError(null);
+      setBoardError(null);
       try {
         const [retention, streak, active] = await Promise.all([
           getLeaderboardByRetention(),
@@ -34,7 +35,7 @@ const CommunityPage = () => {
         setStreakBoard(streak);
         setActiveBoard(active);
       } catch (error) {
-        setError(getApiErrorMessage(error, 'Erro ao carregar leaderboard.'));
+        setBoardError(getApiErrorMessage(error, 'Erro ao carregar leaderboard.'));
       } finally {
         setLoading(false);
       }
@@ -46,8 +47,13 @@ const CommunityPage = () => {
   const handleSearch = async (event: React.FormEvent) => {
     event.preventDefault();
 
+    setSearchError(null);
+    setSearchResults([]);
+
     if (!isAuthenticated || !searchTerm.trim()) {
-      setSearchResults([]);
+      if (!isAuthenticated) {
+        setSearchError('Faça login para pesquisar usuários.');
+      }
       return;
     }
 
@@ -55,7 +61,8 @@ const CommunityPage = () => {
     try {
       setSearchResults(await searchUsers(searchTerm.trim()));
     } catch (error) {
-      setError(getApiErrorMessage(error, 'Erro ao buscar usuários.'));
+      setSearchResults([]);
+      setSearchError(getApiErrorMessage(error, 'Erro ao buscar usuários.'));
     } finally {
       setSearching(false);
     }
@@ -93,15 +100,15 @@ const CommunityPage = () => {
       <div>
         <h1 className="text-3xl font-bold mb-2">Comunidade</h1>
         <p className="text-gray-600">
-          O leaderboard é visível para todos. A busca por usuários fica disponível apenas para usuários autenticados.
+          O leaderboard é público. A busca por usuários exige autenticação.
         </p>
       </div>
 
       {loading ? (
         <div>Carregando leaderboard...</div>
-      ) : error ? (
+      ) : boardError ? (
         <div className="rounded-lg border border-red-200 bg-red-50 p-4 text-red-700">
-          {error}
+          {boardError}
         </div>
       ) : (
         <div className="grid gap-6 xl:grid-cols-3">
@@ -138,6 +145,12 @@ const CommunityPage = () => {
             {searching ? 'Buscando...' : 'Buscar'}
           </button>
         </form>
+
+        {searchError && (
+          <div className="mt-4 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+            {searchError}
+          </div>
+        )}
 
         {searchResults.length > 0 && (
           <ul className="mt-4 grid gap-3 md:grid-cols-2">
