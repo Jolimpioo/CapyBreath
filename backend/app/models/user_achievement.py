@@ -1,6 +1,6 @@
 from datetime import datetime, timezone
 from typing import TYPE_CHECKING
-from sqlalchemy import ForeignKey, UniqueConstraint, Index
+from sqlalchemy import ForeignKey, UniqueConstraint, Index, DateTime
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.dialects.postgresql import UUID
 import uuid
@@ -26,6 +26,7 @@ class UserAchievement(Base, UUIDMixin, TimestampMixin):
     )
 
     unlocked_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
         default=lambda: datetime.now(timezone.utc),
         nullable=False,
         index=True,

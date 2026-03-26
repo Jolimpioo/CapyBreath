@@ -1,6 +1,6 @@
 from datetime import datetime
 from typing import TYPE_CHECKING
-from sqlalchemy import String, Boolean, Integer
+from sqlalchemy import String, Boolean, Integer, DateTime
 from sqlalchemy.orm import Mapped, mapped_column,relationship
 from app.models.base import Base, TimestampMixin, UUIDMixin, SoftDeleteMixin
 
@@ -93,8 +93,9 @@ class User(Base, UUIDMixin, TimestampMixin, SoftDeleteMixin):
     )
 
     last_session_date: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True),
         nullable=True
-)
+    )
 
     sessions: Mapped[list["Session"]] = relationship(
         "Session",
