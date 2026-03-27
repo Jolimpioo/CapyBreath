@@ -83,6 +83,39 @@ async def list_my_sessions(
 
 
 @router.get(
+    "/personal-best",
+    response_model=SessionDetailResponse,
+    summary="Melhor sessão (personal best)"
+)
+async def get_personal_best(
+    user_id: CurrentUserDep,
+    session_service: SessionServiceDep
+):
+    best = await session_service.get_personal_best(user_id)
+    
+    if not best:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Nenhuma sessão encontrada"
+        )
+    
+    return best
+
+
+@router.get(
+    "/personal-bests/recent",
+    response_model=list[SessionDetailResponse],
+    summary="Personal bests recentes"
+)
+async def get_recent_personal_bests(
+    user_id: CurrentUserDep,
+    session_service: SessionServiceDep,
+    days: int = Query(30, ge=1, le=365)
+):
+    return await session_service.get_recent_personal_bests(user_id, days)
+
+
+@router.get(
     "/{session_id}",
     response_model=SessionDetailResponse,
     summary="Obter detalhes de uma sessão"
@@ -226,37 +259,3 @@ async def filter_by_technique(
         user_id,
         technique_variant
     )
-
-
-# personal bests
-@router.get(
-    "/personal-best",
-    response_model=SessionDetailResponse,
-    summary="Melhor sessão (personal best)"
-)
-async def get_personal_best(
-    user_id: CurrentUserDep,
-    session_service: SessionServiceDep
-):
-    best = await session_service.get_personal_best(user_id)
-    
-    if not best:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Nenhuma sessão encontrada"
-        )
-    
-    return best
-
-
-@router.get(
-    "/personal-bests/recent",
-    response_model=list[SessionDetailResponse],
-    summary="Personal bests recentes"
-)
-async def get_recent_personal_bests(
-    user_id: CurrentUserDep,
-    session_service: SessionServiceDep,
-    days: int = Query(30, ge=1, le=365)
-):
-    return await session_service.get_recent_personal_bests(user_id, days)
