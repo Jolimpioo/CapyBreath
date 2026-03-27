@@ -107,12 +107,8 @@ class SessionService:
             **session_data.model_dump()
         )
 
-        # Atualiza stats do usuário
-        await self.user_repo.update_stats(
-            user_id=user_id,
-            retention_time=session_data.retention_time,
-            session_date=session.session_date
-        )
+        # Atualiza stats do usuário usando fonte única de verdade (recompute)
+        await self._recompute_user_stats(user_id)
 
         # Invalida cache
         await invalidate_user_stats(str(user_id))

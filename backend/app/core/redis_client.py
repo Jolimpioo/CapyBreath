@@ -22,6 +22,11 @@ async def get_redis() -> Redis:
 class RedisCache:
     def __init__(self):
         self.redis: Optional[Redis] = None
+
+    def _is_available(self) -> bool:
+        if self.redis is None:
+            return False
+        return True
     
     async def connect(self) -> None:
         self.redis = await get_redis()
@@ -31,6 +36,8 @@ class RedisCache:
             await self.redis.close()
     
     async def get(self, key: str) -> Optional[str]:
+        if not self._is_available():
+            return None
         try:
             return await self.redis.get(key)
         except RedisError as e:
@@ -43,6 +50,8 @@ class RedisCache:
             value: str,
             ttl: Optional[int] = None
     ) -> bool:
+        if not self._is_available():
+            return False
         try:
             if ttl:
                 await self.redis.setex(key, ttl, value)
@@ -76,6 +85,8 @@ class RedisCache:
             return False
         
     async def delete(self, key: str) -> bool:
+        if not self._is_available():
+            return False
         try:
             result = await self.redis.delete(key)
             return result > 0
@@ -84,6 +95,8 @@ class RedisCache:
             return False
     
     async def exists(self, key: str) -> bool:
+        if not self._is_available():
+            return False
         try:
             return await self.redis.exists(key) > 0
         except RedisError as e:
@@ -91,6 +104,8 @@ class RedisCache:
             return False
         
     async def expire(self, key: str, ttl: int) -> bool:
+        if not self._is_available():
+            return False
         try:
             return await self.redis.expire(key, ttl)
         except RedisError as e:
@@ -98,6 +113,8 @@ class RedisCache:
             return False
         
     async def ttl(self,  key:str) -> int:
+        if not self._is_available():
+            return -2
         try:
             return await self.redis.ttl(key)
         except RedisError as e:
@@ -105,6 +122,8 @@ class RedisCache:
             return -2  # key does not exist
         
     async def increment(self, key: str, amount: int =1) -> int:
+        if not self._is_available():
+            return 0
         try:
             return await self.redis.incrby(key, amount)
         except RedisError as e:
@@ -112,6 +131,8 @@ class RedisCache:
             return 0
         
     async def delete_pattern(self, pattern: str) -> int:
+        if not self._is_available():
+            return 0
         try:
             keys = []
             async for key in self.redis.scan_iter(match=pattern):
