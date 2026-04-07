@@ -1,4 +1,7 @@
 from contextlib import asynccontextmanager
+import logging
+import time
+import uuid
 from fastapi import FastAPI, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
@@ -6,8 +9,11 @@ from fastapi.responses import JSONResponse
 from app.core.config import settings
 from app.core.database import init_db, close_db
 from app.core.redis_client import init_redis, close_redis
+from app.core.logging import configure_logging
 from app.api.v1.router import api_router
 
+configure_logging(settings.log_level)
+logger = logging.getLogger("app.main")
 
 # lifecicle events
 @asynccontextmanager
@@ -18,26 +24,47 @@ async def lifespan(app: FastAPI):
     - Shutdown: Fecha conexões
     """
     # Startup
-    print("🚀 Iniciando CapyBreath API...")
+    logger.info(
+        "startup_begin",
+        extra={"event_data": {"event": "app_startup_begin"}}
+    )
     
     # Conecta ao banco de dados
     await init_db()
-    print("✅ Conectado ao PostgreSQL")
+    logger.info(
+        "postgres_connected",
+        extra={"event_data": {"event": "postgres_connected"}}
+    )
     
     # Conecta ao Redis
     await init_redis()
-    print("✅ Conectado ao Redis")
+    logger.info(
+        "redis_connected",
+        extra={"event_data": {"event": "redis_connected"}}
+    )
     
-    print(f"🦫 {settings.app_name} v{settings.app_version} está rodando!")
-    print(f"📚 Documentação: http://{settings.host}:{settings.port}/docs")
+    logger.info(
+        "startup_complete",
+        extra={"event_data": {
+            "event": "app_startup_complete",
+            "app": settings.app_name,
+            "version": settings.app_version
+        }}
+    )
     
     yield
     
     # Shutdown
-    print("🛑 Encerrando CapyBreath API...")
+    logger.info(
+        "shutdown_begin",
+        extra={"event_data": {"event": "app_shutdown_begin"}}
+    )
     await close_redis()
     await close_db()
-    print("👋 Até logo!")
+    logger.info(
+        "shutdown_complete",
+        extra={"event_data": {"event": "app_shutdown_complete"}}
+    )
 
 
 # app instance
@@ -89,6 +116,30 @@ app.include_router(
     api_router,
     prefix="/api"
 )
+
+@app.middleware("http")
+async def structured_request_logging(request, call_next):
+    started_at = time.perf_counter()
+    request_id = str(uuid.uuid4())
+    request.state.request_id = request_id
+
+    response = await call_next(request)
+
+    latency_ms = round((time.perf_counter() - started_at) * 1000, 2)
+    response.headers["X-Request-ID"] = request_id
+    logger.info(
+        "http_request",
+        extra={"event_data": {
+            "event": "http_request",
+            "request_id": request_id,
+            "user_id": None,
+            "ip": request.client.host if request.client else None,
+            "path": request.url.path,
+            "status_code": response.status_code,
+            "latency_ms": latency_ms
+        }}
+    )
+    return response
 
 
 # root endpoints

@@ -1,5 +1,5 @@
 from datetime import datetime
-from fastapi import APIRouter, HTTPException, status, Query
+from fastapi import APIRouter, HTTPException, Query, Request, status
 from uuid import UUID
 
 from app.schemas.session import (
@@ -15,6 +15,7 @@ from app.schemas.session import (
 from app.schemas.common import MessageResponse, PaginatedResponse
 from app.api.dependencies import SessionServiceDep, AchievementServiceDep
 from app.api.auth import CurrentUserDep
+from app.core.audit import log_security_event
 
 router = APIRouter(prefix="/sessions", tags=["Sessions"])
 
@@ -28,12 +29,19 @@ router = APIRouter(prefix="/sessions", tags=["Sessions"])
 )
 async def create_session(
     session_data: SessionCreate,
+    request: Request,
     user_id: CurrentUserDep,
     session_service: SessionServiceDep,
     achievement_service: AchievementServiceDep
 ):
     # Cria sessão
     session = await session_service.create_session(user_id, session_data)
+    log_security_event(
+        event="session_create_success",
+        request=request,
+        status_code=status.HTTP_201_CREATED,
+        user_id=str(user_id)
+    )
     
     # Verifica conquistas desbloqueadas
     newly_unlocked = await achievement_service.check_and_unlock_achievements(
@@ -41,9 +49,15 @@ async def create_session(
     )
     
     # TODO: Retornar conquistas desbloqueadas em header ou campo extra
-    # Por enquanto, apenas logamos
+    # Por enquanto, apenas auditamos
     if newly_unlocked:
-        print(f"🏆 {len(newly_unlocked)} conquistas desbloqueadas!")
+        log_security_event(
+            event="achievement_unlock_batch",
+            request=request,
+            status_code=status.HTTP_201_CREATED,
+            user_id=str(user_id),
+            extra={"unlocked_count": len(newly_unlocked)}
+        )
     
     return session
 

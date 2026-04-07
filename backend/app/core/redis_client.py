@@ -1,8 +1,10 @@
 import json
+import logging
 from typing import Any, Optional
 from redis.asyncio import Redis, ConnectionPool
 from redis.exceptions import RedisError
 from app.core.config import settings
+logger = logging.getLogger("app.redis")
 
 # redis connection pool
 redis_pool = ConnectionPool.from_url(
@@ -40,8 +42,11 @@ class RedisCache:
             return None
         try:
             return await self.redis.get(key)
-        except RedisError as e:
-            print(f"Redis GET error: {e}")
+        except RedisError:
+            logger.error(
+                "redis_get_error",
+                extra={"event_data": {"event": "redis_get_error", "key": key}}
+            )
             return None
     
     async def set(
@@ -58,8 +63,11 @@ class RedisCache:
             else:
                 await self.redis.set(key, value)
             return True
-        except RedisError as e:
-            print(f"Redis SET error: {e}")
+        except RedisError:
+            logger.error(
+                "redis_set_error",
+                extra={"event_data": {"event": "redis_set_error", "key": key}}
+            )
             return False
         
     async def get_json(self, key: str) -> Optional[dict]:
@@ -80,8 +88,11 @@ class RedisCache:
         try:
             json_str = json.dumps(value)
             return await self.set(key, json_str, ttl)
-        except (TypeError, ValueError) as e:
-            print(f"JSON serialization error: {e}")
+        except (TypeError, ValueError):
+            logger.error(
+                "json_serialization_error",
+                extra={"event_data": {"event": "json_serialization_error"}}
+            )
             return False
         
     async def delete(self, key: str) -> bool:
@@ -90,8 +101,11 @@ class RedisCache:
         try:
             result = await self.redis.delete(key)
             return result > 0
-        except RedisError as e:
-            print(f"Redis DELETE error: {e}")
+        except RedisError:
+            logger.error(
+                "redis_delete_error",
+                extra={"event_data": {"event": "redis_delete_error", "key": key}}
+            )
             return False
     
     async def exists(self, key: str) -> bool:
@@ -99,8 +113,11 @@ class RedisCache:
             return False
         try:
             return await self.redis.exists(key) > 0
-        except RedisError as e:
-            print(f"Redis EXISTS error: {e}")
+        except RedisError:
+            logger.error(
+                "redis_exists_error",
+                extra={"event_data": {"event": "redis_exists_error", "key": key}}
+            )
             return False
         
     async def expire(self, key: str, ttl: int) -> bool:
@@ -108,8 +125,11 @@ class RedisCache:
             return False
         try:
             return await self.redis.expire(key, ttl)
-        except RedisError as e:
-            print(f"Redis EXPIRE error: {e}")
+        except RedisError:
+            logger.error(
+                "redis_expire_error",
+                extra={"event_data": {"event": "redis_expire_error", "key": key}}
+            )
             return False
         
     async def ttl(self,  key:str) -> int:
@@ -117,8 +137,11 @@ class RedisCache:
             return -2
         try:
             return await self.redis.ttl(key)
-        except RedisError as e:
-            print(f"Redis TTL error: {e}")
+        except RedisError:
+            logger.error(
+                "redis_ttl_error",
+                extra={"event_data": {"event": "redis_ttl_error", "key": key}}
+            )
             return -2  # key does not exist
         
     async def increment(self, key: str, amount: int =1) -> int:
@@ -126,8 +149,11 @@ class RedisCache:
             return 0
         try:
             return await self.redis.incrby(key, amount)
-        except RedisError as e:
-            print(f"Redis INCRBY error: {e}")
+        except RedisError:
+            logger.error(
+                "redis_incrby_error",
+                extra={"event_data": {"event": "redis_incrby_error", "key": key}}
+            )
             return 0
         
     async def delete_pattern(self, pattern: str) -> int:
@@ -141,8 +167,11 @@ class RedisCache:
             if keys:
                 return await self.redis.delete(*keys)
             return 0
-        except RedisError as e:
-            print(f"Redis DELETE_PATTERN error: {e}")
+        except RedisError:
+            logger.error(
+                "redis_delete_pattern_error",
+                extra={"event_data": {"event": "redis_delete_pattern_error", "pattern": pattern}}
+            )
             return 0
 
 # singleton redis cache instance
@@ -150,11 +179,17 @@ cache = RedisCache()
 
 async def init_redis() -> None:
     await cache.connect()
-    print("Connected to Redis")
+    logger.info(
+        "redis_connected",
+        extra={"event_data": {"event": "redis_connected"}}
+    )
 
 async def close_redis() -> None:
     await cache.close()
-    print("Disconnected from Redis")
+    logger.info(
+        "redis_disconnected",
+        extra={"event_data": {"event": "redis_disconnected"}}
+    )
 
 async def store_refresh_token(user_id: str, token: str) -> bool:
     key = f"refresh_token:{user_id}"

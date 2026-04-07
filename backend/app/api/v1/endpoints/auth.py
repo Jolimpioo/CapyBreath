@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException, status
+from fastapi import APIRouter, HTTPException, Request, status
 
 from app.schemas.auth import (
     UserRegister,
@@ -11,6 +11,8 @@ from app.schemas.user import UserLoginResponse
 from app.schemas.common import MessageResponse
 from app.api.dependencies import AuthServiceDep
 from app.api.auth import CurrentUserDep
+from app.core.audit import log_security_event
+from app.core.logging import mask_sensitive
 
 router = APIRouter(prefix="/auth", tags=["Authentication"])
 
@@ -23,10 +25,18 @@ router = APIRouter(prefix="/auth", tags=["Authentication"])
 )
 async def register(
     user_data: UserRegister,
+    request: Request,
     auth_service: AuthServiceDep
 ):
     try:
         user, tokens = await auth_service.register_user(user_data)
+        log_security_event(
+            event="auth_register_success",
+            request=request,
+            status_code=status.HTTP_201_CREATED,
+            user_id=str(user.id),
+            extra={"email": mask_sensitive(user_data.email)}
+        )
         
         return {
             "user": user.model_dump(),
@@ -34,6 +44,12 @@ async def register(
         }
     
     except ValueError as e:
+        log_security_event(
+            event="auth_register_failed",
+            request=request,
+            status_code=status.HTTP_400_BAD_REQUEST,
+            extra={"email": mask_sensitive(user_data.email)}
+        )
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=str(e)
@@ -47,10 +63,18 @@ async def register(
 )
 async def login(
     login_data: UserLogin,
+    request: Request,
     auth_service: AuthServiceDep
 ):
     try:
         user, tokens = await auth_service.login_user(login_data)
+        log_security_event(
+            event="auth_login_success",
+            request=request,
+            status_code=status.HTTP_200_OK,
+            user_id=str(user.id),
+            extra={"email": mask_sensitive(login_data.email)}
+        )
         
         return {
             "user": user.model_dump(),
@@ -58,6 +82,12 @@ async def login(
         }
     
     except ValueError as e:
+        log_security_event(
+            event="auth_login_failed",
+            request=request,
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            extra={"email": mask_sensitive(login_data.email)}
+        )
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail=str(e)
@@ -71,11 +101,17 @@ async def login(
 )
 async def refresh_token(
     token_data: TokenRefresh,
+    request: Request,
     auth_service: AuthServiceDep
 ):
     try:
         new_access_token = await auth_service.refresh_access_token(
             token_data.refresh_token
+        )
+        log_security_event(
+            event="auth_refresh_success",
+            request=request,
+            status_code=status.HTTP_200_OK
         )
         
         return AccessTokenResponse(
@@ -85,6 +121,11 @@ async def refresh_token(
         )
     
     except ValueError as e:
+        log_security_event(
+            event="auth_refresh_failed",
+            request=request,
+            status_code=status.HTTP_401_UNAUTHORIZED
+        )
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail=str(e)
@@ -97,10 +138,17 @@ async def refresh_token(
     summary="Fazer logout"
 )
 async def logout(
+    request: Request,
     user_id: CurrentUserDep,
     auth_service: AuthServiceDep
 ):
     await auth_service.logout_user(user_id)
+    log_security_event(
+        event="auth_logout_success",
+        request=request,
+        status_code=status.HTTP_200_OK,
+        user_id=str(user_id)
+    )
     
     return MessageResponse(
         message="Logout realizado com sucesso"
