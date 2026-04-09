@@ -76,14 +76,20 @@ async def list_my_sessions(
     order_dir: str = Query("desc", pattern="^(asc|desc)$")
 ):
     skip = (page - 1) * size
-    
-    items, total = await session_service.list_user_sessions(
-        user_id=user_id,
-        skip=skip,
-        limit=size,
-        order_by=order_by,
-        order_dir=order_dir
-    )
+
+    try:
+        items, total = await session_service.list_user_sessions(
+            user_id=user_id,
+            skip=skip,
+            limit=size,
+            order_by=order_by,
+            order_dir=order_dir
+        )
+    except ValueError as e:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail=str(e)
+        )
     
     total_pages = (total + size - 1) // size  # Ceiling division
     

@@ -14,7 +14,6 @@ def log_security_event(
     user_id: str | None = None,
     extra: dict[str, Any] | None = None
 ) -> None:
-    latency_ms = getattr(request.state, "latency_ms", None)
     event_data: dict[str, Any] = {
         "event": event,
         "request_id": getattr(request.state, "request_id", None),
@@ -22,7 +21,7 @@ def log_security_event(
         "ip": request.client.host if request.client else None,
         "path": request.url.path,
         "status_code": status_code,
-        "latency_ms": latency_ms,
+        "latency_ms": None,
     }
 
     if extra:

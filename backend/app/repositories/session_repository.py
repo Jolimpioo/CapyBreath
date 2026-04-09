@@ -9,6 +9,13 @@ from app.repositories.base_repository import BaseRepository
 
 
 class SessionRepository(BaseRepository[Session]):
+    ORDER_BY_ALLOWLIST = {
+        "session_date": Session.session_date,
+        "created_at": Session.created_at,
+        "retention_time": Session.retention_time,
+        "breaths_count": Session.breaths_count,
+    }
+
     def __init__(self, db: AsyncSession):
         super().__init__(Session, db)
 
@@ -29,8 +36,15 @@ class SessionRepository(BaseRepository[Session]):
         order_by: str = "session_date",
         order_dir: str = "desc"
     ) -> Sequence[Session]:
-        # Determina campo de ordenação
-        order_field = getattr(Session, order_by, Session.session_date)
+        # Determina campo de ordenação via allowlist
+        order_field = self.ORDER_BY_ALLOWLIST.get(order_by)
+        if order_field is None:
+            allowed = ", ".join(self.ORDER_BY_ALLOWLIST.keys())
+            raise ValueError(
+                f"Campo 'order_by' inválido: '{order_by}'. "
+                f"Use um destes: {allowed}."
+            )
+
         order_func = desc if order_dir == "desc" else asc
 
         result = await self.db.execute(
