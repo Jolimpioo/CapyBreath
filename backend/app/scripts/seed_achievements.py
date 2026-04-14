@@ -10,6 +10,7 @@ Ou via CLI async:
 """
 
 import asyncio
+import logging
 from uuid import uuid4
 from datetime import datetime, timezone
 
@@ -18,6 +19,10 @@ from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sess
 from app.models import Base, Achievement
 from app.models.achievement import AchievementCategory, AchievementRarity
 from app.core.config import settings
+from app.core.logging import configure_logging
+
+configure_logging(settings.log_level)
+logger = logging.getLogger("app.scripts.seed_achievements")
 
 
 # Dados de achievements padrão
@@ -319,10 +324,26 @@ async def seed_achievements():
             count = result.scalar()
             
             if count > 0:
-                print(f"⚠️  Já existem {count} achievements no banco. Abortando seed.")
+                logger.warning(
+                    "seed_achievements_aborted_existing_records",
+                    extra={
+                        "event_data": {
+                            "event": "seed_achievements_aborted_existing_records",
+                            "existing_count": count,
+                        }
+                    }
+                )
                 return
             
-            print(f"🌱 Iniciando seed de achievements...")
+            logger.info(
+                "seed_achievements_started",
+                extra={
+                    "event_data": {
+                        "event": "seed_achievements_started",
+                        "records_planned": len(DEFAULT_ACHIEVEMENTS),
+                    }
+                }
+            )
             
             # Cria achievements
             achievements = []
@@ -341,14 +362,37 @@ async def seed_achievements():
             # Commit
             await session.commit()
             
-            print(f"✅ {len(achievements)} achievements criados com sucesso!")
-            print("\n📋 Achievements populados:")
+            logger.info(
+                "seed_achievements_success",
+                extra={
+                    "event_data": {
+                        "event": "seed_achievements_success",
+                        "created_count": len(achievements),
+                    }
+                }
+            )
             for ach in achievements:
-                print(f"   {ach.icon} {ach.name} ({ach.rarity}) - {ach.points} pts")
+                logger.info(
+                    "seed_achievement_created",
+                    extra={"event_data": {
+                        "event": "seed_achievement_created",
+                        "achievement_name": ach.name,
+                        "rarity": ach.rarity,
+                        "points": ach.points
+                    }}
+                )
             
         except Exception as e:
             await session.rollback()
-            print(f"❌ Erro ao criar achievements: {e}")
+            logger.error(
+                "seed_achievements_failed",
+                extra={
+                    "event_data": {
+                        "event": "seed_achievements_failed",
+                        "error": str(e),
+                    }
+                }
+            )
             raise
         
         finally:

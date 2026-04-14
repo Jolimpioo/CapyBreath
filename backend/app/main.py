@@ -122,6 +122,7 @@ async def structured_request_logging(request, call_next):
     started_at = time.perf_counter()
     request_id = str(uuid.uuid4())
     request.state.request_id = request_id
+    request.state.request_started_at = started_at
 
     response = await call_next(request)
 

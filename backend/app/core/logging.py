@@ -3,6 +3,40 @@ import logging
 from datetime import datetime, timezone
 from typing import Any
 
+REDACTED = "***redacted***"
+SENSITIVE_KEYS = {
+    "password",
+    "password_hash",
+    "token",
+    "access_token",
+    "refresh_token",
+    "authorization",
+    "cookie",
+    "set-cookie",
+    "secret",
+    "secret_key",
+}
+
+
+def sanitize_log_data(value: Any, *, key: str | None = None) -> Any:
+    normalized_key = (key or "").lower()
+    if normalized_key in SENSITIVE_KEYS:
+        return REDACTED
+
+    if isinstance(value, dict):
+        return {
+            nested_key: sanitize_log_data(nested_value, key=str(nested_key))
+            for nested_key, nested_value in value.items()
+        }
+
+    if isinstance(value, list):
+        return [sanitize_log_data(item) for item in value]
+
+    if isinstance(value, tuple):
+        return tuple(sanitize_log_data(item) for item in value)
+
+    return value
+
 
 class JsonFormatter(logging.Formatter):
     def format(self, record: logging.LogRecord) -> str:
@@ -15,7 +49,7 @@ class JsonFormatter(logging.Formatter):
 
         event_data = getattr(record, "event_data", None)
         if isinstance(event_data, dict):
-            payload.update(event_data)
+            payload.update(sanitize_log_data(event_data))
 
         return json.dumps(payload, ensure_ascii=False)
 

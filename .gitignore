@@ -88,3 +88,4 @@ redis_data/
 docker-compose.override.yml
 
 docs/
+tests/
