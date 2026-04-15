@@ -1,8 +1,12 @@
 // Instância base do axios para requisições à API
 import axios from 'axios';
 
+const authWithCredentials =
+  import.meta.env.VITE_AUTH_WITH_CREDENTIALS === 'true';
+
 const httpClient = axios.create({
   baseURL: import.meta.env.VITE_API_URL || 'http://localhost:8000',
+  withCredentials: authWithCredentials,
   headers: {
     'Content-Type': 'application/json',
   },

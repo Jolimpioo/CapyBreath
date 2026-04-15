@@ -58,6 +58,16 @@ class Settings(BaseSettings):
     def cors_origins_list(self) -> list[str]:
         return [origin.strip() for origin in self.cors_origins.split(",")]
 
+    def validate_cors_credentials_policy(self) -> None:
+        """
+        Com allow_credentials=True, wildcard de origem não é permitido.
+        """
+        if any(origin == "*" for origin in self.cors_origins_list):
+            raise ValueError(
+                "CORS inválido: com credenciais habilitadas, "
+                "não use '*' em CORS_ORIGINS."
+            )
+
     @property
     def cors_allow_methods(self) -> list[str]:
         if self.strict_cors_enabled:

@@ -64,3 +64,19 @@ STRICT_CORS_ENABLED=true
 AUTH_DUAL_MODE_ENABLED=true
 CSP_REPORT_ONLY_ENABLED=true
 ```
+
+## CORS com credenciais (CB-CORS-031)
+
+- A API roda com `allow_credentials=True`.
+- Por segurança, o backend valida que `CORS_ORIGINS` **não** contenha `*` (wildcard).
+- Defina origens explícitas separadas por vírgula, por exemplo:
+
+```env
+CORS_ORIGINS=http://localhost:5173,https://app.capybreath.com
+```
+
+No frontend, habilite envio de cookies com:
+
+```env
+VITE_AUTH_WITH_CREDENTIALS=true
+```
