@@ -6,6 +6,44 @@ import { getApiErrorMessage } from '../../api/apiError';
 import Button from '../../components/ui/Button';
 import Alert from '../../components/ui/Alert';
 import PageContainer from '../../components/ui/PageContainer';
+import Card from '../../components/ui/Card';
+
+type SessionHistoryItemProps = {
+  session: SessionListItem;
+};
+
+const SessionHistoryItem = ({ session }: SessionHistoryItemProps) => (
+  <li>
+    <Link
+      to={`/session/${session.id}`}
+      className="block rounded-lg border border-transparent p-3 transition hover:border-capy-secondary/40 hover:bg-capy-light/40 focus-visible:border-capy-accent focus-visible:bg-capy-light/50"
+    >
+      <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
+        <span className="font-mono text-xs text-gray-500">
+          {new Date(session.session_date).toLocaleString('pt-BR')}
+        </span>
+
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="text-sm">
+            Retenção: <b>{session.retention_time}s</b>
+          </span>
+          <span className="rounded-full border border-capy-secondary/45 px-2 py-1 text-xs">
+            Técnica: {session.technique_variant}
+          </span>
+          {session.is_personal_best && (
+            <span className="rounded-full border border-amber-300 bg-amber-100 px-2 py-1 text-xs font-semibold text-amber-800">
+              🏆 Personal Best
+            </span>
+          )}
+        </div>
+      </div>
+    </Link>
+  </li>
+);
+
+const EmptyState = ({ text }: { text: string }) => (
+  <p className="text-gray-600">{text}</p>
+);
 
 const SessionHistory = () => {
   const [sessions, setSessions] = useState<SessionListItem[]>([]);
@@ -24,7 +62,9 @@ const SessionHistory = () => {
         setPages(data.pages);
       } catch (error) {
         setSessions([]);
-        setError(getApiErrorMessage(error, 'Erro ao carregar histórico de sessões.'));
+        setError(
+          getApiErrorMessage(error, 'Erro ao carregar histórico de sessões.')
+        );
       } finally {
         setLoading(false);
       }
@@ -33,62 +73,50 @@ const SessionHistory = () => {
   }, [page]);
 
   return (
-    <PageContainer className="max-w-2xl mt-2">
-      <h1 className="text-2xl font-bold mb-4">Histórico de Sessões</h1>
-      {loading ? (
-        <div>Carregando sessões...</div>
-      ) : error ? (
-        <Alert variant="error">{error}</Alert>
-      ) : sessions.length === 0 ? (
-        <div>Nenhuma sessão encontrada.</div>
-      ) : (
-        <>
-          <ul className="divide-y">
-            {sessions.map(s => (
-              <li key={s.id}>
-                <Link
-                  to={`/session/${s.id}`}
-                  className="flex min-h-[44px] flex-col rounded px-2 py-3 transition hover:bg-gray-50 md:flex-row md:items-center md:gap-4"
-                >
-                  <span className="font-mono text-xs text-gray-500">
-                    {new Date(s.session_date).toLocaleString('pt-BR')}
-                  </span>
-                  <span className="md:ml-2">
-                    Retenção: <b>{s.retention_time}s</b>
-                  </span>
-                  <span className="md:ml-2 text-xs text-gray-500">
-                    Técnica: {s.technique_variant}
-                  </span>
-                  {s.is_personal_best && (
-                    <span className="md:ml-2 text-xs font-semibold text-amber-600">
-                      🏆 Personal Best
-                    </span>
-                  )}
-                </Link>
-              </li>
-            ))}
-          </ul>
-          <div className="mt-4 flex flex-wrap items-center gap-3">
-            <Button
-              type="button"
-              variant="ghost"
-              onClick={() => setPage(prev => Math.max(1, prev - 1))}
-              disabled={page <= 1}
-            >
-              Anterior
-            </Button>
-            <span className="text-sm">Página {page} de {pages}</span>
-            <Button
-              type="button"
-              variant="ghost"
-              onClick={() => setPage(prev => Math.min(pages, prev + 1))}
-              disabled={page >= pages}
-            >
-              Próxima
-            </Button>
-          </div>
-        </>
-      )}
+    <PageContainer className="max-w-3xl mt-2">
+      <Card>
+        <h1 className="mb-4 text-2xl font-bold">Histórico de Sessões</h1>
+
+        {loading ? (
+          <p>Carregando sessões...</p>
+        ) : error ? (
+          <Alert variant="error">{error}</Alert>
+        ) : sessions.length === 0 ? (
+          <EmptyState text="Nenhuma sessão encontrada." />
+        ) : (
+          <>
+            <ul className="space-y-2">
+              {sessions.map(session => (
+                <SessionHistoryItem key={session.id} session={session} />
+              ))}
+            </ul>
+
+            <div className="mt-5 flex flex-wrap items-center justify-between gap-3">
+              <Button
+                type="button"
+                variant="ghost"
+                onClick={() => setPage(prev => Math.max(1, prev - 1))}
+                disabled={page <= 1}
+              >
+                Anterior
+              </Button>
+
+              <span className="text-sm">
+                Página {page} de {pages}
+              </span>
+
+              <Button
+                type="button"
+                variant="ghost"
+                onClick={() => setPage(prev => Math.min(pages, prev + 1))}
+                disabled={page >= pages}
+              >
+                Próxima
+              </Button>
+            </div>
+          </>
+        )}
+      </Card>
     </PageContainer>
   );
 };
