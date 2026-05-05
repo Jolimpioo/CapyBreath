@@ -14,27 +14,27 @@ const AchievementItem = ({
   unlocked = false,
   onClick,
 }: AchievementItemProps) => {
+  const stateClass = unlocked
+    ? 'border-capy-accent bg-green-50 text-green-800'
+    : 'border-capy-secondary/35 bg-white text-gray-700';
+
   return (
     <button
       type="button"
       onClick={onClick}
-      className={`w-full text-left transition hover:shadow-sm ${
-        unlocked
-          ? 'p-4 rounded border-2 border-green-500 bg-green-50'
-          : 'p-4 rounded border bg-gray-50'
-      }`}
+      className={`min-h-[44px] w-full rounded-lg border p-4 text-left transition hover:shadow-sm focus-visible:border-capy-accent ${stateClass}`}
     >
-      <p className="font-bold text-lg">
+      <p className="text-lg font-bold">
         {achievement.icon} {achievement.name}
       </p>
       <p className="text-sm text-gray-600">{achievement.description}</p>
       {'progress' in achievement ? (
-        <p className="text-xs text-gray-500 mt-2">
+        <p className="mt-2 text-xs text-gray-500">
           Progresso: {achievement.progress.current}/{achievement.progress.target}{' '}
           ({Math.round(achievement.progress.percentage)}%)
         </p>
       ) : (
-        <p className="text-xs text-green-700 mt-2">
+        <p className="mt-2 text-xs font-semibold text-green-700">
           +{achievement.points} pts • {achievement.rarity}
         </p>
       )}
