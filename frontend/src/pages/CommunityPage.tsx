@@ -8,6 +8,51 @@ import {
 } from '../api/userApi';
 import type { PublicUserStats, User } from '../types/user.types';
 import { useAuthContext } from '../features/auth/AuthProvider';
+import PageContainer from '../components/ui/PageContainer';
+import Card from '../components/ui/Card';
+import Alert from '../components/ui/Alert';
+import Button from '../components/ui/Button';
+
+type LeaderboardCardProps = {
+  title: string;
+  items: PublicUserStats[];
+  metric: (item: PublicUserStats) => string;
+};
+
+const rankTone = (index: number) => {
+  if (index === 0) return 'border-capy-accent bg-green-50';
+  if (index === 1) return 'border-capy-secondary/50 bg-capy-light/40';
+  if (index === 2) return 'border-capy-secondary/35 bg-white';
+  return 'border-gray-200 bg-white';
+};
+
+const EmptyState = ({ text }: { text: string }) => <p className="text-gray-600">{text}</p>;
+
+const LeaderboardCard = ({ title, items, metric }: LeaderboardCardProps) => (
+  <Card compact>
+    <h2 className="mb-3 text-xl font-semibold">{title}</h2>
+    {items.length === 0 ? (
+      <EmptyState text="Nenhum dado disponível." />
+    ) : (
+      <ol className="space-y-3">
+        {items.map((item, index) => (
+          <li
+            key={item.id}
+            className={`flex items-center justify-between gap-3 rounded-lg border p-3 ${rankTone(index)}`}
+          >
+            <div>
+              <p className="font-semibold">
+                #{index + 1} {item.full_name || item.username}
+              </p>
+              <p className="text-sm text-gray-500">@{item.username}</p>
+            </div>
+            <span className="text-sm font-bold">{metric(item)}</span>
+          </li>
+        ))}
+      </ol>
+    )}
+  </Card>
+);
 
 const CommunityPage = () => {
   const { isAuthenticated } = useAuthContext();
@@ -68,58 +113,43 @@ const CommunityPage = () => {
     }
   };
 
-  const renderBoard = (
-    title: string,
-    items: PublicUserStats[],
-    metric: (item: PublicUserStats) => string
-  ) => (
-    <section className="rounded-xl border bg-white p-5 shadow-sm">
-      <h2 className="text-xl font-semibold mb-3">{title}</h2>
-      {items.length === 0 ? (
-        <p className="text-gray-600">Nenhum dado disponível.</p>
-      ) : (
-        <ol className="space-y-3">
-          {items.map((item, index) => (
-            <li key={item.id} className="flex items-center justify-between rounded border p-3">
-              <div>
-                <p className="font-semibold">
-                  #{index + 1} {item.full_name || item.username}
-                </p>
-                <p className="text-sm text-gray-500">@{item.username}</p>
-              </div>
-              <span className="text-sm font-bold">{metric(item)}</span>
-            </li>
-          ))}
-        </ol>
-      )}
-    </section>
-  );
-
   return (
-    <div className="max-w-6xl mx-auto p-6 mt-8 space-y-6">
+    <PageContainer className="max-w-6xl mt-2 space-y-6">
       <div>
-        <h1 className="text-3xl font-bold mb-2">Comunidade</h1>
+        <h1 className="mb-2 text-3xl font-bold">Comunidade</h1>
         <p className="text-gray-600">
           O leaderboard é público. A busca por usuários exige autenticação.
         </p>
       </div>
 
       {loading ? (
-        <div>Carregando leaderboard...</div>
+        <Card>
+          <p>Carregando leaderboard...</p>
+        </Card>
       ) : boardError ? (
-        <div className="rounded-lg border border-red-200 bg-red-50 p-4 text-red-700">
-          {boardError}
-        </div>
+        <Alert variant="error">{boardError}</Alert>
       ) : (
         <div className="grid gap-6 xl:grid-cols-3">
-          {renderBoard('Top retenção', retentionBoard, item => `${item.best_retention_time}s`)}
-          {renderBoard('Top streak', streakBoard, item => `${item.current_streak} dias`)}
-          {renderBoard('Mais ativos', activeBoard, item => `${item.total_sessions} sessões`)}
+          <LeaderboardCard
+            title="Top retenção"
+            items={retentionBoard}
+            metric={item => `${item.best_retention_time}s`}
+          />
+          <LeaderboardCard
+            title="Top streak"
+            items={streakBoard}
+            metric={item => `${item.current_streak} dias`}
+          />
+          <LeaderboardCard
+            title="Mais ativos"
+            items={activeBoard}
+            metric={item => `${item.total_sessions} sessões`}
+          />
         </div>
       )}
 
-      <section className="rounded-xl border bg-white p-5 shadow-sm">
-        <div className="flex items-center justify-between gap-3 mb-4">
+      <Card compact>
+        <div className="mb-4 flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
           <h2 className="text-xl font-semibold">Buscar usuários</h2>
           {!isAuthenticated && (
             <span className="text-sm text-gray-500">
@@ -129,26 +159,25 @@ const CommunityPage = () => {
         </div>
 
         <form onSubmit={handleSearch} className="flex flex-col gap-3 md:flex-row">
-          <input
-            type="text"
-            value={searchTerm}
-            onChange={event => setSearchTerm(event.target.value)}
-            disabled={!isAuthenticated}
-            placeholder="Buscar por username"
-            className="flex-1 rounded border px-3 py-2 disabled:bg-gray-100"
-          />
-          <button
-            type="submit"
-            disabled={!isAuthenticated || searching}
-            className="rounded bg-capy-primary px-4 py-2 font-semibold text-white hover:bg-capy-primary/90 disabled:opacity-50"
-          >
+          <label className="ui-field flex-1">
+            <span className="sr-only">Buscar por username</span>
+            <input
+              type="text"
+              value={searchTerm}
+              onChange={event => setSearchTerm(event.target.value)}
+              disabled={!isAuthenticated}
+              placeholder="Buscar por username"
+              className="ui-field__control disabled:bg-gray-100"
+            />
+          </label>
+          <Button type="submit" disabled={!isAuthenticated || searching}>
             {searching ? 'Buscando...' : 'Buscar'}
-          </button>
+          </Button>
         </form>
 
         {searchError && (
-          <div className="mt-4 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">
-            {searchError}
+          <div className="mt-4">
+            <Alert variant="error">{searchError}</Alert>
           </div>
         )}
 
@@ -162,8 +191,8 @@ const CommunityPage = () => {
             ))}
           </ul>
         )}
-      </section>
-    </div>
+      </Card>
+    </PageContainer>
   );
 };
 
