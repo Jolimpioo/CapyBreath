@@ -32,6 +32,7 @@ const SessionDetailPage = () => {
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
   useEffect(() => {
     if (!id) {
@@ -66,6 +67,7 @@ const SessionDetailPage = () => {
 
     setSaving(true);
     setError(null);
+    setSuccessMessage(null);
 
     const payload: SessionUpdateRequest = {
       notes: notes.trim() ? notes.trim() : null,
@@ -84,6 +86,7 @@ const SessionDetailPage = () => {
             }
           : null
       );
+      setSuccessMessage('Sessão atualizada com sucesso.');
       showToast('Sessão atualizada com sucesso!', 'success');
     } catch (error) {
       const message = getApiErrorMessage(error, 'Erro ao atualizar sessão.');
@@ -105,6 +108,7 @@ const SessionDetailPage = () => {
 
     setDeleting(true);
     setError(null);
+    setSuccessMessage(null);
 
     try {
       await deleteSession(id);
@@ -143,9 +147,9 @@ const SessionDetailPage = () => {
         <>
           <SessionDetails session={session} />
 
-          <Card className="max-w-2xl mx-auto mt-6">
+          <Card className="mx-auto mt-6 max-w-2xl">
             <form onSubmit={handleSave} className="space-y-4">
-              <div className="flex items-center justify-between gap-3 mb-4">
+              <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
                 <h2 className="text-xl font-bold">Editar sessão</h2>
                 <Button
                   type="button"
@@ -158,6 +162,9 @@ const SessionDetailPage = () => {
               </div>
 
               {error && session && <Alert variant="error">{error}</Alert>}
+              {successMessage && (
+                <Alert variant="success">{successMessage}</Alert>
+              )}
 
               <InputField
                 label="Notas"
