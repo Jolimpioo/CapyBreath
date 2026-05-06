@@ -7,9 +7,14 @@ type NavItem = {
   label: string;
 };
 
-const publicItems: NavItem[] = [{ to: '/community', label: 'Comunidade' }];
+const publicItems: NavItem[] = [
+  { to: '/', label: 'Início' },
+  { to: '/community', label: 'Comunidade' },
+];
 
 const privateItems: NavItem[] = [
+  { to: '/', label: 'Praticar' },
+  { to: '/dashboard', label: 'Dashboard' },
   { to: '/session', label: 'Sessões' },
   { to: '/achievements', label: 'Conquistas' },
   { to: '/profile', label: 'Perfil' },
@@ -37,8 +42,13 @@ const Navbar = () => {
     return () => window.removeEventListener('keydown', handleEscape);
   }, []);
 
+  const isActivePath = (path: string) =>
+    path === '/'
+      ? location.pathname === path
+      : location.pathname === path || location.pathname.startsWith(`${path}/`);
+
   const resolveNavLinkClass = (path: string) =>
-    `${baseNavLinkClass} ${location.pathname === path ? 'bg-white/20 font-semibold' : ''}`.trim();
+    `${baseNavLinkClass} ${isActivePath(path) ? 'bg-white/20 font-semibold' : ''}`.trim();
 
   const renderDesktopLinks = (items: NavItem[]) => (
     <div
@@ -50,7 +60,7 @@ const Navbar = () => {
           key={item.to}
           to={item.to}
           className={resolveNavLinkClass(item.to)}
-          aria-current={location.pathname === item.to ? 'page' : undefined}
+          aria-current={isActivePath(item.to) ? 'page' : undefined}
         >
           {item.label}
         </Link>
@@ -70,7 +80,7 @@ const Navbar = () => {
           to={item.to}
           className={`${resolveNavLinkClass(item.to)} w-full`}
           onClick={closeMenu}
-          aria-current={location.pathname === item.to ? 'page' : undefined}
+          aria-current={isActivePath(item.to) ? 'page' : undefined}
         >
           {item.label}
         </Link>
@@ -84,7 +94,11 @@ const Navbar = () => {
       aria-label="Barra principal"
     >
       <div className="mx-auto flex min-h-[64px] w-full max-w-6xl items-center justify-between px-4 md:px-6">
-        <Link to="/" className="text-xl font-bold" onClick={closeMenu}>
+        <Link
+          to="/"
+          className="text-xl font-bold text-white hover:text-white"
+          onClick={closeMenu}
+        >
           CapyBreath
         </Link>
 
