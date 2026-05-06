@@ -3,6 +3,21 @@ import { useAuthContext } from '../auth/AuthProvider';
 import { getMyFullProfile } from '../../api/userApi';
 import type { UserProfile as UserProfileData } from '../../types/user.types';
 import { getApiErrorMessage } from '../../api/apiError';
+import Card from '../../components/ui/Card';
+import Button from '../../components/ui/Button';
+import Alert from '../../components/ui/Alert';
+
+type ProfileStatProps = {
+  label: string;
+  value: string | number;
+};
+
+const ProfileStat = ({ label, value }: ProfileStatProps) => (
+  <div className="rounded-lg border p-4">
+    <p className="text-sm text-gray-500">{label}</p>
+    <p className="text-2xl font-bold">{value}</p>
+  </div>
+);
 
 const UserProfile = () => {
   const { user, logout } = useAuthContext();
@@ -28,67 +43,63 @@ const UserProfile = () => {
     void fetchProfile();
   }, [user]);
 
-  if (!user) return <div>Usuário não autenticado.</div>;
+  if (!user) {
+    return (
+      <Card>
+        <p>Usuário não autenticado.</p>
+      </Card>
+    );
+  }
 
   return (
-    <div className="max-w-4xl mx-auto bg-white rounded-xl shadow-md p-8 mt-8 flex flex-col gap-6">
+    <Card className="flex flex-col gap-6">
       <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
         <div className="space-y-2">
-          <h2 className="text-2xl font-bold mb-2">Perfil</h2>
-          <div>
+          <h1 className="text-2xl font-bold">Perfil</h1>
+          <p>
             <strong>Nome:</strong> {user.full_name || 'Não informado'}
-          </div>
-          <div>
+          </p>
+          <p>
             <strong>Usuário:</strong> @{user.username}
-          </div>
-          <div>
+          </p>
+          <p>
             <strong>E-mail:</strong> {user.email}
-          </div>
-          <div>
+          </p>
+          <p>
             <strong>ID:</strong> {user.id}
-          </div>
+          </p>
         </div>
-        <button
+        <Button
+          type="button"
+          variant="danger"
           onClick={() => {
             void logout();
           }}
-          className="mt-2 bg-red-600 text-white font-bold py-2 px-4 rounded hover:bg-red-700 transition h-fit"
         >
           Sair
-        </button>
+        </Button>
       </div>
 
       {loading ? (
-        <div>Carregando estatísticas do perfil...</div>
+        <p>Carregando estatísticas do perfil...</p>
       ) : error ? (
-        <div className="rounded border border-red-200 bg-red-50 p-4 text-red-700">
-          {error}
-        </div>
+        <Alert variant="error">{error}</Alert>
       ) : profile ? (
         <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-          <div className="rounded-lg border p-4">
-            <p className="text-sm text-gray-500">Sessões totais</p>
-            <p className="text-2xl font-bold">{profile.total_sessions}</p>
-          </div>
-          <div className="rounded-lg border p-4">
-            <p className="text-sm text-gray-500">Melhor retenção</p>
-            <p className="text-2xl font-bold">{profile.best_retention_time}s</p>
-          </div>
-          <div className="rounded-lg border p-4">
-            <p className="text-sm text-gray-500">Streak atual</p>
-            <p className="text-2xl font-bold">{profile.current_streak}</p>
-          </div>
-          <div className="rounded-lg border p-4">
-            <p className="text-sm text-gray-500">Última sessão</p>
-            <p className="text-sm font-semibold">
-              {profile.last_session_date
+          <ProfileStat label="Sessões totais" value={profile.total_sessions} />
+          <ProfileStat label="Melhor retenção" value={`${profile.best_retention_time}s`} />
+          <ProfileStat label="Streak atual" value={profile.current_streak} />
+          <ProfileStat
+            label="Última sessão"
+            value={
+              profile.last_session_date
                 ? new Date(profile.last_session_date).toLocaleString('pt-BR')
-                : 'Sem sessões'}
-            </p>
-          </div>
+                : 'Sem sessões'
+            }
+          />
         </div>
       ) : null}
-    </div>
+    </Card>
   );
 };
 

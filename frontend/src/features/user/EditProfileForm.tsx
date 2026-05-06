@@ -2,6 +2,10 @@ import { useState } from 'react';
 import { updateProfile } from '../../api/userApi';
 import { useAuthContext } from '../auth/AuthProvider';
 import { getApiErrorMessage } from '../../api/apiError';
+import Card from '../../components/ui/Card';
+import Button from '../../components/ui/Button';
+import Alert from '../../components/ui/Alert';
+import InputField from '../../components/ui/InputField';
 
 const EditProfileForm = () => {
   const { user, setUser, showToast } = useAuthContext();
@@ -11,7 +15,13 @@ const EditProfileForm = () => {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
-  if (!user) return <div>Usuário não autenticado.</div>;
+  if (!user) {
+    return (
+      <Card>
+        <p>Usuário não autenticado.</p>
+      </Card>
+    );
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -36,37 +46,38 @@ const EditProfileForm = () => {
   };
 
   return (
-    <form
-      onSubmit={handleSubmit}
-      className="max-w-sm mx-auto p-8 bg-white rounded-xl shadow-md flex flex-col gap-4 mt-8"
-    >
-      <h2 className="text-2xl font-bold mb-4 text-center">Editar Perfil</h2>
-      {success && (
-        <div className="text-green-600 text-sm text-center">{success}</div>
-      )}
-      {error && <div className="text-red-600 text-sm text-center">{error}</div>}
-      <input
-        type="text"
-        placeholder="Nome completo"
-        value={fullName}
-        onChange={e => setFullName(e.target.value)}
-        className="border rounded px-3 py-2"
-      />
-      <input
-        type="url"
-        placeholder="URL do avatar"
-        value={avatarUrl}
-        onChange={e => setAvatarUrl(e.target.value)}
-        className="border rounded px-3 py-2"
-      />
-      <button
-        type="submit"
-        className="bg-capy-primary text-white font-bold py-2 rounded hover:bg-capy-primary/90 transition"
-        disabled={loading}
-      >
-        {loading ? 'Salvando...' : 'Salvar Alterações'}
-      </button>
-    </form>
+    <Card>
+      <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+        <header>
+          <h2 className="text-2xl font-bold">Editar Perfil</h2>
+          <p className="mt-1 text-sm text-gray-600">
+            Atualize seus dados visíveis e informações de avatar.
+          </p>
+        </header>
+
+        {success && <Alert variant="success">{success}</Alert>}
+        {error && <Alert variant="error">{error}</Alert>}
+
+        <InputField
+          label="Nome completo"
+          type="text"
+          placeholder="Nome completo"
+          value={fullName}
+          onChange={e => setFullName(e.target.value)}
+        />
+        <InputField
+          label="URL do avatar"
+          type="url"
+          placeholder="https://exemplo.com/avatar.png"
+          value={avatarUrl}
+          onChange={e => setAvatarUrl(e.target.value)}
+        />
+
+        <Button type="submit" disabled={loading}>
+          {loading ? 'Salvando...' : 'Salvar alterações'}
+        </Button>
+      </form>
+    </Card>
   );
 };
 
