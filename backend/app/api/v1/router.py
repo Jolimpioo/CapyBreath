@@ -1,6 +1,6 @@
 from fastapi import APIRouter
 
-from app.api.v1.endpoints import auth, users, sessions, achievements
+from app.api.v1.endpoints import auth, users, sessions, achievements, observability
 
 # Router principal da v1
 api_router = APIRouter(prefix="/v1")
@@ -10,3 +10,4 @@ api_router.include_router(auth.router)
 api_router.include_router(users.router)
 api_router.include_router(sessions.router)
 api_router.include_router(achievements.router)
+api_router.include_router(observability.router)

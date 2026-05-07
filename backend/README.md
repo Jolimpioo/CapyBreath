@@ -80,3 +80,22 @@ No frontend, habilite envio de cookies com:
 ```env
 VITE_AUTH_WITH_CREDENTIALS=true
 ```
+
+## Métricas de auth/abuso (CB-SEC-002)
+
+Foi adicionado um snapshot operacional para acompanhamento diário:
+
+- `GET /api/v1/observability/security-metrics`
+
+Estrutura retornada:
+
+- `auth.login_success`, `auth.login_failed`
+- `auth.refresh_success`, `auth.refresh_failed`
+- `http_status_by_endpoint` (com foco em `401`, `403`, `429`)
+- `rate_limit_blocks` (incrementado para respostas `429` por endpoint)
+
+Exemplo de consulta:
+
+```bash
+curl -s http://localhost:8000/api/v1/observability/security-metrics | jq .
+```

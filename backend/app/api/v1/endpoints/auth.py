@@ -13,6 +13,7 @@ from app.api.dependencies import AuthServiceDep
 from app.api.auth import CurrentUserDep
 from app.core.audit import log_security_event
 from app.core.logging import mask_sensitive
+from app.core.metrics import security_metrics
 
 router = APIRouter(prefix="/auth", tags=["Authentication"])
 GENERIC_REGISTER_ERROR_MESSAGE = (
@@ -79,6 +80,7 @@ async def login(
 ):
     try:
         user, tokens = await auth_service.login_user(login_data)
+        security_metrics.increment_auth("login", "success")
         log_security_event(
             event="auth_login_success",
             request=request,
@@ -93,6 +95,7 @@ async def login(
         }
     
     except ValueError as e:
+        security_metrics.increment_auth("login", "failed")
         log_security_event(
             event="auth_login_failed",
             request=request,
@@ -122,6 +125,7 @@ async def refresh_token(
         new_access_token = await auth_service.refresh_access_token(
             token_data.refresh_token
         )
+        security_metrics.increment_auth("refresh", "success")
         log_security_event(
             event="auth_refresh_success",
             request=request,
@@ -135,6 +139,7 @@ async def refresh_token(
         )
     
     except ValueError as e:
+        security_metrics.increment_auth("refresh", "failed")
         log_security_event(
             event="auth_refresh_failed",
             request=request,

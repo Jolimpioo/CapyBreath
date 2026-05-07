@@ -10,6 +10,7 @@ from app.core.config import settings
 from app.core.database import init_db, close_db
 from app.core.redis_client import init_redis, close_redis
 from app.core.logging import configure_logging
+from app.core.metrics import security_metrics
 from app.api.v1.router import api_router
 
 configure_logging(settings.log_level)
@@ -129,6 +130,7 @@ async def structured_request_logging(request, call_next):
 
     latency_ms = round((time.perf_counter() - started_at) * 1000, 2)
     response.headers["X-Request-ID"] = request_id
+    security_metrics.increment_http_status(request.url.path, response.status_code)
     logger.info(
         "http_request",
         extra={"event_data": {
