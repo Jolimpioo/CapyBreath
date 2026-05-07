@@ -8,11 +8,16 @@ import type {
   TokenResponse,
 } from '../types/auth.types';
 
+const authWithCredentials =
+  import.meta.env.VITE_AUTH_WITH_CREDENTIALS === 'true';
+
 const storeTokens = (
   tokens: Pick<TokenResponse, 'access_token' | 'refresh_token'>
 ) => {
   localStorage.setItem('accessToken', tokens.access_token);
-  localStorage.setItem('refreshToken', tokens.refresh_token);
+  if (!authWithCredentials) {
+    localStorage.setItem('refreshToken', tokens.refresh_token);
+  }
 };
 
 export const login = async (data: LoginRequest) => {
@@ -33,10 +38,11 @@ export const register = async (data: RegisterRequest) => {
   return response;
 };
 
-export const refreshToken = async (refresh_token: string) => {
+export const refreshToken = async (refresh_token?: string) => {
+  const payload = refresh_token ? { refresh_token } : {};
   const response = await httpClient.post<AccessTokenResponse>(
     '/api/v1/auth/refresh',
-    { refresh_token }
+    payload
   );
   localStorage.setItem('accessToken', response.data.access_token);
   return response;

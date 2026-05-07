@@ -99,3 +99,18 @@ Exemplo de consulta:
 ```bash
 curl -s http://localhost:8000/api/v1/observability/security-metrics | jq .
 ```
+
+## Dual mode auth (CB-AUTH-010)
+
+Quando `AUTH_DUAL_MODE_ENABLED=true`, o backend aceita temporariamente os dois modos:
+
+- **Modo Bearer (legado):** refresh via body (`refresh_token`).
+- **Modo Cookie (novo):** refresh token também é enviado em cookie HttpOnly (`refresh_token`).
+
+Com a flag ativa:
+
+- `POST /api/v1/auth/login` e `POST /api/v1/auth/register` passam a setar cookie de refresh.
+- `POST /api/v1/auth/refresh` prioriza cookie e mantém fallback para body.
+- `POST /api/v1/auth/logout` limpa cookie quando dual mode está ativo.
+
+Telemetria de auditoria inclui `auth_mode` (`bearer`, `dual` ou `cookie`) nos eventos principais de auth.

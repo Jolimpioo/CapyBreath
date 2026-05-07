@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException, Request, status
+from fastapi import APIRouter, HTTPException, Request, Response, status
 
 from app.schemas.auth import (
     UserRegister,
@@ -14,16 +14,37 @@ from app.api.auth import CurrentUserDep
 from app.core.audit import log_security_event
 from app.core.logging import mask_sensitive
 from app.core.metrics import security_metrics
+from app.core.config import settings
 
 router = APIRouter(prefix="/auth", tags=["Authentication"])
 GENERIC_REGISTER_ERROR_MESSAGE = (
     "Não foi possível concluir o cadastro com os dados informados"
 )
 GENERIC_LOGIN_ERROR_MESSAGE = "Email ou senha inválidos"
+REFRESH_COOKIE_NAME = "refresh_token"
 
 
 def _raise_generic_auth_error(status_code: int, detail: str) -> None:
     raise HTTPException(status_code=status_code, detail=detail)
+
+
+def _set_refresh_cookie(response: Response, refresh_token: str) -> None:
+    response.set_cookie(
+        key=REFRESH_COOKIE_NAME,
+        value=refresh_token,
+        httponly=True,
+        secure=settings.secure_cookies_enabled,
+        samesite="lax",
+        max_age=settings.refresh_token_expire_days * 86400,
+        path="/api/v1/auth",
+    )
+
+
+def _clear_refresh_cookie(response: Response) -> None:
+    response.delete_cookie(
+        key=REFRESH_COOKIE_NAME,
+        path="/api/v1/auth",
+    )
 
 
 @router.post(
@@ -35,16 +56,26 @@ def _raise_generic_auth_error(status_code: int, detail: str) -> None:
 async def register(
     user_data: UserRegister,
     request: Request,
+    response: Response,
     auth_service: AuthServiceDep
 ):
     try:
         user, tokens = await auth_service.register_user(user_data)
+
+        auth_mode = "bearer"
+        if settings.auth_dual_mode_enabled:
+            _set_refresh_cookie(response, tokens.refresh_token)
+            auth_mode = "dual"
+
         log_security_event(
             event="auth_register_success",
             request=request,
             status_code=status.HTTP_201_CREATED,
             user_id=str(user.id),
-            extra={"email": mask_sensitive(user_data.email)}
+            extra={
+                "email": mask_sensitive(user_data.email),
+                "auth_mode": auth_mode,
+            }
         )
         
         return {
@@ -76,17 +107,27 @@ async def register(
 async def login(
     login_data: UserLogin,
     request: Request,
+    response: Response,
     auth_service: AuthServiceDep
 ):
     try:
         user, tokens = await auth_service.login_user(login_data)
+
+        auth_mode = "bearer"
+        if settings.auth_dual_mode_enabled:
+            _set_refresh_cookie(response, tokens.refresh_token)
+            auth_mode = "dual"
+
         security_metrics.increment_auth("login", "success")
         log_security_event(
             event="auth_login_success",
             request=request,
             status_code=status.HTTP_200_OK,
             user_id=str(user.id),
-            extra={"email": mask_sensitive(login_data.email)}
+            extra={
+                "email": mask_sensitive(login_data.email),
+                "auth_mode": auth_mode,
+            }
         )
         
         return {
@@ -117,19 +158,33 @@ async def login(
     summary="Renovar access token"
 )
 async def refresh_token(
-    token_data: TokenRefresh,
     request: Request,
-    auth_service: AuthServiceDep
+    auth_service: AuthServiceDep,
+    token_data: TokenRefresh | None = None
 ):
     try:
+        cookie_refresh_token = request.cookies.get(REFRESH_COOKIE_NAME)
+        body_refresh_token = token_data.refresh_token if token_data else None
+
+        refresh_token_value = body_refresh_token
+        auth_mode = "bearer"
+
+        if settings.auth_dual_mode_enabled and cookie_refresh_token:
+            refresh_token_value = cookie_refresh_token
+            auth_mode = "cookie"
+
+        if not refresh_token_value:
+            raise ValueError("Refresh token ausente")
+
         new_access_token = await auth_service.refresh_access_token(
-            token_data.refresh_token
+            refresh_token_value
         )
         security_metrics.increment_auth("refresh", "success")
         log_security_event(
             event="auth_refresh_success",
             request=request,
-            status_code=status.HTTP_200_OK
+            status_code=status.HTTP_200_OK,
+            extra={"auth_mode": auth_mode}
         )
         
         return AccessTokenResponse(
@@ -158,15 +213,19 @@ async def refresh_token(
 )
 async def logout(
     request: Request,
+    response: Response,
     user_id: CurrentUserDep,
     auth_service: AuthServiceDep
 ):
     await auth_service.logout_user(user_id)
+    if settings.auth_dual_mode_enabled:
+        _clear_refresh_cookie(response)
     log_security_event(
         event="auth_logout_success",
         request=request,
         status_code=status.HTTP_200_OK,
-        user_id=str(user_id)
+        user_id=str(user_id),
+        extra={"auth_mode": "dual" if settings.auth_dual_mode_enabled else "bearer"}
     )
     
     return MessageResponse(
