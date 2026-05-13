@@ -49,6 +49,7 @@ As flags abaixo são lidas por variáveis de ambiente com defaults explícitos e
 - `STRICT_CORS_ENABLED` (default: `false`)
 - `AUTH_DUAL_MODE_ENABLED` (default: `false`)
 - `CSP_REPORT_ONLY_ENABLED` (default: `true`)
+- `REFRESH_COOKIE_SAMESITE` (default: `lax`; valores: `lax`, `strict`, `none`)
 
 ### Sugestão por ambiente
 
@@ -63,6 +64,7 @@ SECURE_COOKIES_ENABLED=true
 STRICT_CORS_ENABLED=true
 AUTH_DUAL_MODE_ENABLED=true
 CSP_REPORT_ONLY_ENABLED=true
+REFRESH_COOKIE_SAMESITE=lax
 ```
 
 ## CORS com credenciais (CB-CORS-031)
@@ -80,6 +82,9 @@ No frontend, habilite envio de cookies com:
 ```env
 VITE_AUTH_WITH_CREDENTIALS=true
 ```
+
+Quando essa opção está ativa, o frontend envia o header `X-Auth-Mode: cookie`;
+em CORS estrito, esse header deve permanecer permitido.
 
 ## Métricas de auth/abuso (CB-SEC-002)
 
@@ -105,12 +110,15 @@ curl -s http://localhost:8000/api/v1/observability/security-metrics | jq .
 Quando `AUTH_DUAL_MODE_ENABLED=true`, o backend aceita temporariamente os dois modos:
 
 - **Modo Bearer (legado):** refresh via body (`refresh_token`).
-- **Modo Cookie (novo):** refresh token também é enviado em cookie HttpOnly (`refresh_token`).
+- **Modo Cookie (novo):** refresh token enviado em cookie HttpOnly (`refresh_token`)
+  e sinalizado pelo header `X-Auth-Mode: cookie`.
 
-Com a flag ativa:
+## Refresh token em cookie HttpOnly (CB-AUTH-011)
 
 - `POST /api/v1/auth/login` e `POST /api/v1/auth/register` passam a setar cookie de refresh.
-- `POST /api/v1/auth/refresh` prioriza cookie e mantém fallback para body.
+- Clientes cookie recebem `refresh_token: null` no body para evitar dependência de JavaScript/localStorage.
+- `POST /api/v1/auth/refresh` prioriza cookie e mantém fallback para body em clientes legados.
 - `POST /api/v1/auth/logout` limpa cookie quando dual mode está ativo.
+- Eventos de auditoria registram `auth_mode` como `cookie` ou `bearer`.
 
-Telemetria de auditoria inclui `auth_mode` (`bearer`, `dual` ou `cookie`) nos eventos principais de auth.
+Telemetria de auditoria inclui `auth_mode` (`bearer` ou `cookie`) nos eventos principais de auth.

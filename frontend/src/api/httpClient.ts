@@ -1,7 +1,7 @@
 // Instância base do axios para requisições à API
 import axios from 'axios';
 
-const authWithCredentials =
+export const authWithCredentials =
   import.meta.env.VITE_AUTH_WITH_CREDENTIALS === 'true';
 
 const httpClient = axios.create({
@@ -9,6 +9,7 @@ const httpClient = axios.create({
   withCredentials: authWithCredentials,
   headers: {
     'Content-Type': 'application/json',
+    ...(authWithCredentials ? { 'X-Auth-Mode': 'cookie' } : {}),
   },
 });
 
@@ -42,7 +43,9 @@ httpClient.interceptors.response.use(
     ) {
       originalRequest._retry = true;
       try {
-        const refreshToken = localStorage.getItem('refreshToken');
+        const refreshToken = authWithCredentials
+          ? null
+          : localStorage.getItem('refreshToken');
 
         const res = await httpClient.post(
           '/api/v1/auth/refresh',

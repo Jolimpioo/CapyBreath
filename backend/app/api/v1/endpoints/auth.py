@@ -5,7 +5,8 @@ from app.schemas.auth import (
     UserLogin,
     AuthSuccessResponse,
     TokenRefresh,
-    AccessTokenResponse
+    AccessTokenResponse,
+    TokenResponse,
 )
 from app.schemas.user import UserLoginResponse
 from app.schemas.common import MessageResponse
@@ -22,10 +23,23 @@ GENERIC_REGISTER_ERROR_MESSAGE = (
 )
 GENERIC_LOGIN_ERROR_MESSAGE = "Email ou senha inválidos"
 REFRESH_COOKIE_NAME = "refresh_token"
+AUTH_MODE_HEADER = "x-auth-mode"
+COOKIE_AUTH_MODE = "cookie"
 
 
 def _raise_generic_auth_error(status_code: int, detail: str) -> None:
     raise HTTPException(status_code=status_code, detail=detail)
+
+
+def _is_cookie_auth_request(request: Request) -> bool:
+    return request.headers.get(AUTH_MODE_HEADER, "").lower() == COOKIE_AUTH_MODE
+
+
+def _token_response_for_client(tokens: TokenResponse, *, cookie_auth: bool) -> dict:
+    token_payload = tokens.model_dump()
+    if cookie_auth:
+        token_payload["refresh_token"] = None
+    return token_payload
 
 
 def _set_refresh_cookie(response: Response, refresh_token: str) -> None:
@@ -34,7 +48,7 @@ def _set_refresh_cookie(response: Response, refresh_token: str) -> None:
         value=refresh_token,
         httponly=True,
         secure=settings.secure_cookies_enabled,
-        samesite="lax",
+        samesite=settings.refresh_cookie_samesite,
         max_age=settings.refresh_token_expire_days * 86400,
         path="/api/v1/auth",
     )
@@ -44,6 +58,8 @@ def _clear_refresh_cookie(response: Response) -> None:
     response.delete_cookie(
         key=REFRESH_COOKIE_NAME,
         path="/api/v1/auth",
+        samesite=settings.refresh_cookie_samesite,
+        secure=settings.secure_cookies_enabled,
     )
 
 
@@ -62,10 +78,13 @@ async def register(
     try:
         user, tokens = await auth_service.register_user(user_data)
 
+        cookie_auth = settings.auth_dual_mode_enabled and _is_cookie_auth_request(
+            request
+        )
         auth_mode = "bearer"
         if settings.auth_dual_mode_enabled:
             _set_refresh_cookie(response, tokens.refresh_token)
-            auth_mode = "dual"
+            auth_mode = "cookie" if cookie_auth else "bearer"
 
         log_security_event(
             event="auth_register_success",
@@ -80,7 +99,7 @@ async def register(
         
         return {
             "user": user.model_dump(),
-            "tokens": tokens.model_dump()
+            "tokens": _token_response_for_client(tokens, cookie_auth=cookie_auth)
         }
     
     except ValueError as e:
@@ -113,10 +132,13 @@ async def login(
     try:
         user, tokens = await auth_service.login_user(login_data)
 
+        cookie_auth = settings.auth_dual_mode_enabled and _is_cookie_auth_request(
+            request
+        )
         auth_mode = "bearer"
         if settings.auth_dual_mode_enabled:
             _set_refresh_cookie(response, tokens.refresh_token)
-            auth_mode = "dual"
+            auth_mode = "cookie" if cookie_auth else "bearer"
 
         security_metrics.increment_auth("login", "success")
         log_security_event(
@@ -132,7 +154,7 @@ async def login(
         
         return {
             "user": user.model_dump(),
-            "tokens": tokens.model_dump()
+            "tokens": _token_response_for_client(tokens, cookie_auth=cookie_auth)
         }
     
     except ValueError as e:
@@ -165,12 +187,18 @@ async def refresh_token(
     try:
         cookie_refresh_token = request.cookies.get(REFRESH_COOKIE_NAME)
         body_refresh_token = token_data.refresh_token if token_data else None
+        cookie_auth_requested = settings.auth_dual_mode_enabled and _is_cookie_auth_request(
+            request
+        )
 
         refresh_token_value = body_refresh_token
         auth_mode = "bearer"
 
         if settings.auth_dual_mode_enabled and cookie_refresh_token:
             refresh_token_value = cookie_refresh_token
+            auth_mode = "cookie"
+        elif cookie_auth_requested:
+            refresh_token_value = None
             auth_mode = "cookie"
 
         if not refresh_token_value:
@@ -190,7 +218,7 @@ async def refresh_token(
         return AccessTokenResponse(
             access_token=new_access_token,
             token_type="bearer",
-            expires_in=30 * 60  # 30 minutos em segundos
+            expires_in=settings.access_token_expire_minutes * 60
         )
     
     except ValueError as e:
@@ -218,6 +246,9 @@ async def logout(
     auth_service: AuthServiceDep
 ):
     await auth_service.logout_user(user_id)
+    cookie_auth = settings.auth_dual_mode_enabled and _is_cookie_auth_request(
+        request
+    )
     if settings.auth_dual_mode_enabled:
         _clear_refresh_cookie(response)
     log_security_event(
@@ -225,7 +256,7 @@ async def logout(
         request=request,
         status_code=status.HTTP_200_OK,
         user_id=str(user_id),
-        extra={"auth_mode": "dual" if settings.auth_dual_mode_enabled else "bearer"}
+        extra={"auth_mode": "cookie" if cookie_auth else "bearer"}
     )
     
     return MessageResponse(

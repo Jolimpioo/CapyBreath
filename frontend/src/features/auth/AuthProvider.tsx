@@ -1,7 +1,8 @@
 import { createContext, useContext, useEffect, useState } from 'react';
 import Toast from '../../components/Toast';
 import { getProfile } from '../../api/userApi';
-import { logout as apiLogout } from '../../api/authApi';
+import { authWithCredentials } from '../../api/httpClient';
+import { logout as apiLogout, refreshToken } from '../../api/authApi';
 import type { User } from '../../types/user.types';
 
 interface ToastState {
@@ -25,21 +26,33 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
 }) => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(
-    () => !!localStorage.getItem('accessToken')
+    () => authWithCredentials || !!localStorage.getItem('accessToken')
   );
   const [toast, setToast] = useState<ToastState | null>(null);
 
   useEffect(() => {
-    const accessToken = localStorage.getItem('accessToken');
-    if (accessToken) {
-      getProfile()
-        .then(setUser)
-        .catch(() => {
-          setUser(null);
-          void apiLogout();
-        })
-        .finally(() => setLoading(false));
-    }
+    const hydrateUser = async () => {
+      try {
+        const accessToken = localStorage.getItem('accessToken');
+
+        if (!accessToken && authWithCredentials) {
+          await refreshToken();
+        }
+
+        if (localStorage.getItem('accessToken')) {
+          const profile = await getProfile();
+          setUser(profile);
+        }
+      } catch {
+        setUser(null);
+        localStorage.removeItem('accessToken');
+        localStorage.removeItem('refreshToken');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    void hydrateUser();
   }, []);
 
   const logout = async () => {

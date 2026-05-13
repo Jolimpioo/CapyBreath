@@ -66,9 +66,11 @@ class TokenResponse(BaseSchema):
         ...,
         description="Token de acesso (JWT)"
     )
-    refresh_token: str = Field(
-        ...,
-        description="Token de refresh (JWT)"
+    refresh_token: str | None = Field(
+        None,
+        description=(
+            "Token de refresh (JWT). Ausente no fluxo cookie HttpOnly."
+        )
     )
     token_type: str = Field(
         "bearer",

@@ -1,4 +1,4 @@
-import httpClient from './httpClient';
+import httpClient, { authWithCredentials } from './httpClient';
 import type {
   AccessTokenResponse,
   LoginRequest,
@@ -8,14 +8,16 @@ import type {
   TokenResponse,
 } from '../types/auth.types';
 
-const authWithCredentials =
-  import.meta.env.VITE_AUTH_WITH_CREDENTIALS === 'true';
-
 const storeTokens = (
   tokens: Pick<TokenResponse, 'access_token' | 'refresh_token'>
 ) => {
   localStorage.setItem('accessToken', tokens.access_token);
-  if (!authWithCredentials) {
+  if (authWithCredentials) {
+    localStorage.removeItem('refreshToken');
+    return;
+  }
+
+  if (tokens.refresh_token) {
     localStorage.setItem('refreshToken', tokens.refresh_token);
   }
 };

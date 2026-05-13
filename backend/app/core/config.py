@@ -1,4 +1,5 @@
 from pydantic_settings import BaseSettings, SettingsConfigDict
+from pydantic import field_validator
 from functools import lru_cache
 
 class Settings(BaseSettings):
@@ -21,6 +22,7 @@ class Settings(BaseSettings):
     auth_dual_mode_enabled: bool = False
     csp_report_only_enabled: bool = True
     strict_cors_enabled: bool = False
+    refresh_cookie_samesite: str = "lax"
 
     #cors
     cors_origins: str
@@ -54,6 +56,17 @@ class Settings(BaseSettings):
     log_level: str = "INFO"
 
 
+    @field_validator("refresh_cookie_samesite")
+    @classmethod
+    def validate_refresh_cookie_samesite(cls, value: str) -> str:
+        normalized = value.lower()
+        allowed = {"lax", "strict", "none"}
+        if normalized not in allowed:
+            raise ValueError(
+                "REFRESH_COOKIE_SAMESITE deve ser uma de: lax, strict, none"
+            )
+        return normalized
+
     @property
     def cors_origins_list(self) -> list[str]:
         return [origin.strip() for origin in self.cors_origins.split(",")]
@@ -77,7 +90,7 @@ class Settings(BaseSettings):
     @property
     def cors_allow_headers(self) -> list[str]:
         if self.strict_cors_enabled:
-            return ["Authorization", "Content-Type", "X-Request-ID"]
+            return ["Authorization", "Content-Type", "X-Request-ID", "X-Auth-Mode"]
         return ["*"]
 
     @property
