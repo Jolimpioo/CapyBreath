@@ -50,6 +50,9 @@ function App() {
   const [newAchievements, setNewAchievements] = useState<
     SessionUnlockedAchievement[]
   >([]);
+  const [sessionGroupId, setSessionGroupId] = useState(() =>
+    crypto.randomUUID()
+  );
   const handledFinalizationRef = useRef(false);
 
   const sessionPayloads = useMemo<SessionCreateRequest[]>(() => {
@@ -61,16 +64,31 @@ function App() {
       totalRespiracoes * ((TEMPO_INSPIRACAO + TEMPO_EXPIRACAO) / 1000);
 
     return retencoesPorRound
-      .filter(retencao => retencao > 0)
-      .map(retencao => ({
+      .map((retencao, index) => ({
+        retencao,
+        roundNumber: index + 1,
+      }))
+      .filter(round => round.retencao > 0)
+      .map(round => ({
+        session_group_id: sessionGroupId,
+        round_number: round.roundNumber,
+        total_rounds: totalRounds,
         breaths_count: totalRespiracoes,
-        retention_time: retencao,
+        retention_time: round.retencao,
         recovery_time: TEMPO_RECUPERACAO / 1000,
         duration_seconds:
-          breathingDurationSeconds + retencao + TEMPO_RECUPERACAO / 1000,
+          breathingDurationSeconds +
+          round.retencao +
+          TEMPO_RECUPERACAO / 1000,
         technique_variant: 'standard',
       }));
-  }, [fase, retencoesPorRound, totalRespiracoes]);
+  }, [
+    fase,
+    retencoesPorRound,
+    sessionGroupId,
+    totalRespiracoes,
+    totalRounds,
+  ]);
 
   useEffect(() => {
     if (fase !== 'finalizada') {
@@ -96,7 +114,7 @@ function App() {
         sessionPayloads.forEach(payload => saveAnonymousSession(payload));
         setSessionSavedLocally(true);
         setSavingSession(false);
-        showToast('Sessão salva temporariamente neste dispositivo.', 'info');
+        showToast('Rounds salvos temporariamente neste dispositivo.', 'info');
         return;
       }
 
@@ -114,7 +132,7 @@ function App() {
 
         setSessionSaved(true);
         setNewAchievements(unlockedNow);
-        showToast('Sessão salva no seu histórico!', 'success');
+        showToast('Sessão com rounds salva no seu histórico!', 'success');
       } catch (error) {
         const message = getApiErrorMessage(
           error,
@@ -135,6 +153,7 @@ function App() {
     setSessionSavedLocally(false);
     setSessionError(null);
     setNewAchievements([]);
+    setSessionGroupId(crypto.randomUUID());
     iniciarSessao();
   };
 
@@ -238,6 +257,9 @@ function App() {
                 Tempo de Retenção
               </p>
               <Timer segundos={tempoRetencaoFinal} />
+              <p className="mt-2 text-white/70">
+                {retencoesPorRound.length} de {totalRounds} rounds concluídos
+              </p>
             </SessionPanel>
 
             {retencoesPorRound.length > 0 && (

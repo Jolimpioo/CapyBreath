@@ -1,4 +1,4 @@
-from pydantic import Field, field_validator, ConfigDict
+from pydantic import Field, field_validator, model_validator, ConfigDict
 from datetime import datetime
 from uuid import UUID
 from app.schemas.common import BaseSchema, TimestampSchema, UUIDSchema
@@ -6,6 +6,22 @@ from app.schemas.achievement import AchievementUnlocked
 
 # create
 class SessionCreate(BaseSchema):
+    session_group_id: UUID | None = Field(
+        None,
+        description="ID que agrupa os rounds da mesma prática"
+    )
+    round_number: int = Field(
+        1,
+        ge=1,
+        le=20,
+        description="Número do round dentro da prática"
+    )
+    total_rounds: int = Field(
+        1,
+        ge=1,
+        le=20,
+        description="Total de rounds da prática"
+    )
     breaths_count: int = Field(
         30,
         ge=1,
@@ -51,6 +67,14 @@ class SessionCreate(BaseSchema):
         max_length=50,
         description="Variante da técnica utilizada"
     )
+
+    @model_validator(mode="after")
+    def validate_round_contract(self):
+        if self.round_number > self.total_rounds:
+            raise ValueError(
+                "round_number deve ser menor ou igual a total_rounds"
+            )
+        return self
 
     @field_validator('notes')
     @classmethod
@@ -105,6 +129,18 @@ class SessionResponse(UUIDSchema, TimestampSchema):
     user_id: UUID = Field(
         ...,
         description="ID do usuário dono da sessão"
+    )
+    session_group_id: UUID = Field(
+        ...,
+        description="ID que agrupa os rounds da mesma prática"
+    )
+    round_number: int = Field(
+        ...,
+        description="Número do round dentro da prática"
+    )
+    total_rounds: int = Field(
+        ...,
+        description="Total de rounds da prática"
     )
     breaths_count: int = Field(
         ...,
@@ -166,6 +202,9 @@ class SessionCreateResponse(SessionDetailResponse):
 
 # list
 class SessionListItem(UUIDSchema):
+    session_group_id: UUID
+    round_number: int
+    total_rounds: int
     breaths_count: int
     retention_time: int
     session_date: datetime

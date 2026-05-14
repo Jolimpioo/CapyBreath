@@ -49,6 +49,10 @@ const SessionDetails = ({ session }: SessionDetailsProps) => {
 
       <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
         <DetailMetric label="Técnica" value={session.technique_variant} />
+        <DetailMetric
+          label="Round"
+          value={`${session.round_number} de ${session.total_rounds}`}
+        />
         <DetailMetric label="Respirações" value={session.breaths_count} />
         <DetailMetric label="Retenção" value={`${session.retention_time}s`} />
         <DetailMetric label="Recuperação" value={`${session.recovery_time}s`} />

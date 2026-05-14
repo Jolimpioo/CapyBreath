@@ -1,4 +1,4 @@
-from uuid import UUID
+from uuid import UUID, uuid4
 from typing import Sequence
 from datetime import date, datetime, timedelta, timezone
 
@@ -48,7 +48,7 @@ class SessionService:
             )
             return
 
-        total_sessions = len(sessions)
+        total_sessions = len({s.session_group_id for s in sessions})
         total_retention_time = sum(s.retention_time for s in sessions)
         best_retention_time = max(s.retention_time for s in sessions)
         last_session_date = max(s.session_date for s in sessions)
@@ -101,10 +101,17 @@ class SessionService:
         user_id: UUID,
         session_data: SessionCreate
     ) -> SessionDetailResponse:
-        # Cria sessão
+        # Cria sessão. Quando o cliente não envia um grupo, o backend
+        # cria um grupo próprio para preservar compatibilidade com sessões
+        # legadas de round único.
+        create_data = session_data.model_dump()
+        create_data["session_group_id"] = (
+            create_data.get("session_group_id") or uuid4()
+        )
+
         session = await self.session_repo.create_session(
             user_id=user_id,
-            **session_data.model_dump()
+            **create_data
         )
 
         # Atualiza stats do usuário usando fonte única de verdade (recompute)
@@ -173,6 +180,9 @@ class SessionService:
         items = [
             SessionListItem(
                 id=s.id,
+                session_group_id=s.session_group_id,
+                round_number=s.round_number,
+                total_rounds=s.total_rounds,
                 breaths_count=s.breaths_count,
                 retention_time=s.retention_time,
                 session_date=s.session_date,

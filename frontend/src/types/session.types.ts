@@ -1,6 +1,9 @@
 export interface Session {
   id: string;
   user_id: string;
+  session_group_id: string;
+  round_number: number;
+  total_rounds: number;
   breaths_count: number;
   retention_time: number;
   recovery_time: number;
@@ -34,6 +37,9 @@ export interface SessionCreateResponse extends SessionDetail {
 
 export interface SessionListItem {
   id: string;
+  session_group_id: string;
+  round_number: number;
+  total_rounds: number;
   breaths_count: number;
   retention_time: number;
   session_date: string;
@@ -51,6 +57,9 @@ export interface PaginatedSessionsResponse {
 }
 
 export interface SessionCreateRequest {
+  session_group_id?: string;
+  round_number?: number;
+  total_rounds?: number;
   breaths_count?: number;
   retention_time: number;
   recovery_time?: number;

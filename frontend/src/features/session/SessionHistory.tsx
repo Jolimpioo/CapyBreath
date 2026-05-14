@@ -25,7 +25,8 @@ const SessionHistoryItem = ({ session }: SessionHistoryItemProps) => (
 
         <div className="flex flex-wrap items-center gap-2">
           <span className="text-sm">
-            Retenção: <b>{session.retention_time}s</b>
+            Round {session.round_number}/{session.total_rounds}:{' '}
+            <b>{session.retention_time}s</b>
           </span>
           <span className="rounded-full border border-capy-secondary/45 px-2 py-1 text-xs">
             Técnica: {session.technique_variant}

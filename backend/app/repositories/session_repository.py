@@ -14,6 +14,7 @@ class SessionRepository(BaseRepository[Session]):
         "created_at": Session.created_at,
         "retention_time": Session.retention_time,
         "breaths_count": Session.breaths_count,
+        "round_number": Session.round_number,
     }
 
     def __init__(self, db: AsyncSession):
@@ -79,7 +80,9 @@ class SessionRepository(BaseRepository[Session]):
     async def get_user_total_stats(self, user_id: UUID) -> dict:
         result = await self.db.execute(
             select(
-                func.count(Session.id).label("total_sessions"),
+                func.count(
+                    func.distinct(Session.session_group_id)
+                ).label("total_sessions"),
                 func.sum(Session.retention_time).label("total_retention_time"),
                 func.avg(Session.retention_time).label("average_retention_time"),
                 func.max(Session.retention_time).label("best_retention_time"),
@@ -105,7 +108,9 @@ class SessionRepository(BaseRepository[Session]):
 
         result = await self.db.execute(
             select(
-                func.count(Session.id).label("sessions_count"),
+                func.count(
+                    func.distinct(Session.session_group_id)
+                ).label("sessions_count"),
                 func.sum(Session.retention_time).label("total_retention_time"),
                 func.avg(Session.retention_time).label("average_retention_time"),
                 func.max(Session.retention_time).label("best_retention_time"),
@@ -137,7 +142,9 @@ class SessionRepository(BaseRepository[Session]):
         result = await self.db.execute(
             select(
                 func.date(Session.session_date).label("date"),
-                func.count(Session.id).label("sessions_count"),
+                func.count(
+                    func.distinct(Session.session_group_id)
+                ).label("sessions_count"),
                 func.sum(Session.retention_time).label("total_retention_time"),
                 func.avg(Session.retention_time).label("average_retention_time"),
                 func.max(Session.retention_time).label("best_retention_time"),
@@ -173,7 +180,9 @@ class SessionRepository(BaseRepository[Session]):
         result = await self.db.execute(
             select(
                 func.date_trunc("week", Session.session_date).label("week"),
-                func.count(Session.id).label("sessions_count"),
+                func.count(
+                    func.distinct(Session.session_group_id)
+                ).label("sessions_count"),
                 func.avg(Session.retention_time).label("average_retention_time"),
                 func.max(Session.retention_time).label("best_retention_time"),
             )

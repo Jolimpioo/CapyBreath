@@ -19,6 +19,28 @@ class Session(Base, UUIDMixin, TimestampMixin):
         index=True
     )
 
+    session_group_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        nullable=False,
+        default=uuid.uuid4,
+        index=True,
+        comment="Identificador que agrupa os rounds da mesma prática"
+    )
+
+    round_number: Mapped[int] = mapped_column(
+        Integer,
+        nullable=False,
+        default=1,
+        comment="Número do round dentro do grupo de sessão"
+    )
+
+    total_rounds: Mapped[int] = mapped_column(
+        Integer,
+        nullable=False,
+        default=1,
+        comment="Total de rounds planejados/concluídos no grupo"
+    )
+
     breaths_count: Mapped[int] = mapped_column(
         Integer,
         nullable=False,
@@ -91,6 +113,18 @@ class Session(Base, UUIDMixin, TimestampMixin):
         CheckConstraint(
             "breaths_count > 0",
             name="breaths_count_positive"
+        ),
+        CheckConstraint(
+            "round_number > 0",
+            name="round_number_positive"
+        ),
+        CheckConstraint(
+            "total_rounds > 0",
+            name="total_rounds_positive"
+        ),
+        CheckConstraint(
+            "round_number <= total_rounds",
+            name="round_number_lte_total_rounds"
         ),
         CheckConstraint(
             "duration_seconds > 0",
